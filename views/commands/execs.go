@@ -14,6 +14,16 @@ type ExecFinishedMsg struct {
 
 type ExecStartMsg struct{}
 
+type ProgramErrMsg struct {
+	Err error
+}
+
+type ProjectListChangedMsg struct {
+	ProjectList []helpers.Project
+}
+
+type ReturnHomeMsg struct{}
+
 func OpenEditor(filepath string) tea.Cmd {
 	settings, err := helpers.GetSettings()
 	if err != nil {
@@ -36,16 +46,65 @@ func OpenBTM() tea.Cmd {
 }
 
 func ShowNeofetch() tea.Cmd {
-	c := exec.Command("nerdfetch", "-e") //nolint:gosec
-	out, err := c.Output()
-	if err != nil {
-		return func() tea.Msg {
+	return func() tea.Msg {
+		// Start a goroutine to run the command asynchronously
+		c := exec.Command("neofetch") //nolint:gosec
+		out, err := c.Output()
+
+		// Return the result as a message when the command finishes
+		if err != nil {
 			return ExecFinishedMsg{Err: err, Content: ""}
 		}
-	} else {
-		return func() tea.Msg {
-			return ExecFinishedMsg{Err: nil, Content: string(out)}
+		return ExecFinishedMsg{Err: nil, Content: string(out)}
+	}
+}
+
+func AddProjectCommand(title, description, projectType string) tea.Cmd {
+	return func() tea.Msg {
+
+		err := helpers.AddProject(title, description, projectType)
+		if err != nil {
+			return ProgramErrMsg{Err: err}
+		}
+		projects, err := helpers.GetProjects()
+		if err != nil {
+			return ProgramErrMsg{Err: err}
+		}
+
+		return ProjectListChangedMsg{
+			ProjectList: projects,
 		}
 	}
 
+}
+func DeleteProjectCommand(uuid string) tea.Cmd {
+	return func() tea.Msg {
+		err := helpers.RemoveProject(uuid)
+		if err != nil {
+			return ProgramErrMsg{Err: err}
+		}
+
+		projects, err := helpers.GetProjects()
+		if err != nil {
+			return ProgramErrMsg{Err: err}
+		}
+
+		return ProjectListChangedMsg{
+			ProjectList: projects,
+		}
+	}
+
+}
+
+func LoadProjectsCmd() tea.Cmd {
+	return func() tea.Msg {
+		// Load projects (e.g., from a file or database)
+		projects, err := helpers.GetProjects()
+		if err != nil {
+			// Handle error if needed
+			return ProgramErrMsg{Err: err}
+		}
+		// Return a message that the project list has been loaded
+		return ProjectListChangedMsg{ProjectList: projects}
+	}
 }

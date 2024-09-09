@@ -1,6 +1,7 @@
 package views
 
 import (
+	"lg/helpers"
 	"lg/views/commands"
 	"lg/views/compositions"
 	"lg/views/constants"
@@ -11,10 +12,13 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+var projectsState []helpers.Project
+
 type navigate int
 
 const (
 	serverStats navigate = iota
+	addProject
 	serverInfo
 	serverSettings
 	no
@@ -25,9 +29,18 @@ type item struct {
 	navigation  navigate
 }
 
+type project struct {
+	title, desc string
+	uuid        string
+}
+
 func (i item) Title() string       { return i.title }
 func (i item) Description() string { return i.desc }
 func (i item) FilterValue() string { return i.title }
+
+func (i project) Title() string       { return i.title }
+func (i project) Description() string { return i.desc }
+func (i project) FilterValue() string { return i.title }
 
 type model struct {
 	listLeft  list.Model
@@ -39,21 +52,23 @@ type model struct {
 
 func InitHomeModel() model {
 	itemsLeft := []list.Item{
+		item{title: "Add project", desc: "Add a project", navigation: addProject},
 		item{title: "Server info", desc: "Server monitoring dashboard", navigation: serverInfo},
 		item{title: "Server stats", desc: "Server monitoring dashboard", navigation: serverStats},
-		item{title: "Server settings", desc: "Set default editor and edit firewall settings", navigation: serverSettings},
+		item{title: "Edito settings", desc: "Pick prefered text editor to use when needed", navigation: serverSettings},
 		item{title: "Domains", desc: "Edit caddy configuration", navigation: no},
 	}
 
-	itemsRight := []list.Item{
-		item{title: "Logs", desc: "View system logs"},
-		item{title: "Services", desc: "Manage server services"},
-		item{title: "Storage", desc: "View storage information"},
+	itemsRight := []list.Item{}
+
+	// Populate the new items from the project list
+	for _, p := range projectsState {
+		itemsRight = append(itemsRight, project{title: p.Title, desc: p.UUID, uuid: p.UUID})
 	}
 
 	m := model{
-		listLeft:  list.New(itemsLeft, constants.UnfocusedListDelegate(), 0, 0),
-		listRight: list.New(itemsRight, constants.UnfocusedListDelegate(), 0, 0),
+		listLeft:  list.New(itemsLeft, constants.UnfocusedListDelegate(), 20, 20),
+		listRight: list.New(itemsRight, constants.UnfocusedListDelegate(), 20, 20),
 		focus:     0, // Start with focus on the left list
 		quitting:  false,
 		loading:   true,
@@ -67,13 +82,25 @@ func InitHomeModel() model {
 	return m
 }
 
+func (m *model) mapProjects(projects []helpers.Project) {
+	itemsRight := []list.Item{}
+
+	// Populate the new items from the project list
+	for _, p := range projects {
+		itemsRight = append(itemsRight, project{title: p.Title, desc: p.UUID, uuid: p.UUID})
+	}
+
+	// Set the new list of items in the right list
+	m.listRight.SetItems(itemsRight)
+}
+
 func GoHome() (tea.Model, tea.Cmd) {
 	homeModel := InitHomeModel()
 	return homeModel.Update(constants.WinSize)
 }
 
 func (m model) Init() tea.Cmd {
-	return nil
+	return commands.LoadProjectsCmd()
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -91,6 +118,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch m.focus {
 			case 0:
 				switch m.listLeft.SelectedItem().(item).navigation {
+				case addProject:
+					return m, commands.AddProjectCommand("aaa", "aaa", "aaa")
 				case serverStats:
 					return InitServerStatsModel().Update(commands.ExecStartMsg{})
 
@@ -98,15 +127,33 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return InitServerInfoModel().Update(commands.ExecStartMsg{})
 
 				case serverSettings:
-					return InitServerSettingsModel().Update(commands.ExecStartMsg{})
+					f, _ := NewEditorSelectionModel()
+					f.Init()
+					return f, nil
+
 				}
 
 			case 1:
+			}
+		case key.Matches(msg, constants.Keymap.Delete):
+			if m.focus == 1 {
+				pdm, _ := NewPeojectDeleteModel(m.listRight.SelectedItem().(project).uuid)
+				pdm.Init()
+				return pdm, nil
 			}
 		case key.Matches(msg, constants.Keymap.Back):
 			return m, nil
 
 		}
+	case commands.ProgramErrMsg:
+		// setup an err view and handle arr errors with it
+		panic(msg.Err)
+	case commands.ProjectListChangedMsg:
+		m.mapProjects(msg.ProjectList)
+		projectsState = msg.ProjectList
+		m.loading = false
+		return m, nil
+
 	case tea.WindowSizeMsg:
 		constants.WinSize = msg
 		m.listLeft.SetSize(constants.BodyWidth()/2, constants.BodyHeight())

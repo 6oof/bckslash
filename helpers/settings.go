@@ -11,6 +11,7 @@ type BckslashSettings struct {
 	EditorCommand string `json:"editor_command"`
 }
 
+// GetSettings reads the JSON file and unmarshals it into a BckslashSettings struct
 func GetSettings() (*BckslashSettings, error) {
 	// Open the settings file
 	file, err := os.Open("bckslash_settings.json")
@@ -25,7 +26,7 @@ func GetSettings() (*BckslashSettings, error) {
 		return nil, fmt.Errorf("unable to read settings file: %w", err)
 	}
 
-	// Unmarshal the JSON into a Settings struct
+	// Unmarshal the JSON into a BckslashSettings struct
 	var settings BckslashSettings
 	err = json.Unmarshal(bytes, &settings)
 	if err != nil {
@@ -33,4 +34,21 @@ func GetSettings() (*BckslashSettings, error) {
 	}
 
 	return &settings, nil
+}
+
+// SaveSettings marshals the BckslashSettings struct and writes it to the JSON file
+func SaveSettings(settings *BckslashSettings) error {
+	// Marshal the BckslashSettings struct into JSON with indentation
+	bytes, err := json.MarshalIndent(settings, "", "  ")
+	if err != nil {
+		return fmt.Errorf("unable to marshal settings: %w", err)
+	}
+
+	// Write the JSON content back to the file
+	err = os.WriteFile("bckslash_settings.json", bytes, 0644)
+	if err != nil {
+		return fmt.Errorf("unable to write settings file: %w", err)
+	}
+
+	return nil
 }

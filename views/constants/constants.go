@@ -4,13 +4,14 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 )
 
-var MainHelpString string = "↑/↓: navigate  • esc: back • tab: switch focus • /: filter (where avaliable) • q: quit"
+var MainHelpString string = "↑/↓: navigate  • esc: back • tab: switch focus • /: filter • d: delete • q: quit"
 
 type keymap struct {
-	Enter key.Binding
-	Back  key.Binding
-	Quit  key.Binding
-	Tab   key.Binding
+	Enter  key.Binding
+	Back   key.Binding
+	Delete key.Binding
+	Quit   key.Binding
+	Tab    key.Binding
 }
 
 // Keymap reusable key mappings shared across models
@@ -26,6 +27,10 @@ var Keymap = keymap{
 	Back: key.NewBinding(
 		key.WithKeys("esc"),
 		key.WithHelp("esc", "back"),
+	),
+	Delete: key.NewBinding(
+		key.WithKeys("d"),
+		key.WithHelp("d", "delete"),
 	),
 	Quit: key.NewBinding(
 		key.WithKeys("ctrl+c", "q"),

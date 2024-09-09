@@ -35,5 +35,5 @@ func RenderHelpBar(wi int, helpstring string) string {
 
 func Layout(location, helpstring, children string) string {
 
-	return lipgloss.JoinVertical(lipgloss.Center, RenderBar(location), constants.DocStyle.Render(children), RenderHelpBar(constants.BodyWidth(), helpstring))
+	return lipgloss.JoinVertical(lipgloss.Left, RenderBar(location), constants.DocStyle.Render(children), RenderHelpBar(constants.BodyWidth(), helpstring))
 }
