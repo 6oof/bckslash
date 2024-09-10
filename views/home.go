@@ -72,7 +72,6 @@ func InitHomeModel() homeModel {
 		listRight: list.New(itemsRight, constants.UnfocusedListDelegate(), 20, 20),
 		focus:     0, // Start with focus on the left list
 		quitting:  false,
-		loading:   true,
 	}
 
 	m.listLeft.Title = "Bckslash actions"
@@ -120,9 +119,8 @@ func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case 0:
 				switch m.listLeft.SelectedItem().(item).navigation {
 				case addProject:
-					apm, _ := MakePeojectAddModel()
-					apm.Init()
-					return apm, nil
+					apm := MakePeojectAddModel()
+					return apm, apm.Init()
 				case serverStats:
 					return MakeServerStatsModel().Update(commands.ExecStartMsg{})
 
@@ -133,9 +131,8 @@ func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return MakeServerHelpModel().Update(commands.ExecStartMsg{})
 
 				case serverSettings:
-					f, _ := MakeEditorSelectionModel()
-					f.Init()
-					return f, nil
+					esm := MakeEditorSelectionModel()
+					return esm, esm.Init()
 
 				}
 

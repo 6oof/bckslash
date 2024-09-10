@@ -17,7 +17,7 @@ type ProjectAddModel struct {
 	loading bool
 }
 
-func MakePeojectAddModel() (ProjectAddModel, error) {
+func MakePeojectAddModel() ProjectAddModel {
 	// Load settings
 
 	fm := ProjectAddModel{
@@ -59,7 +59,7 @@ func MakePeojectAddModel() (ProjectAddModel, error) {
 		),
 	)
 
-	return fm, nil
+	return fm
 }
 
 func (m ProjectAddModel) Init() tea.Cmd {

@@ -16,11 +16,11 @@ type EditorFormModel struct {
 	Err     error
 }
 
-func MakeEditorSelectionModel() (EditorFormModel, error) {
+func MakeEditorSelectionModel() EditorFormModel {
 	// Load settings
 	settings, err := helpers.GetSettings()
 	if err != nil {
-		return EditorFormModel{}, fmt.Errorf("failed to load settings: %w", err)
+		return EditorFormModel{Err: fmt.Errorf("failed to load settings: %w", err)}
 	}
 
 	fm := EditorFormModel{
@@ -48,7 +48,7 @@ func MakeEditorSelectionModel() (EditorFormModel, error) {
 		),
 	)
 
-	return fm, nil
+	return fm
 }
 
 func (m EditorFormModel) Init() tea.Cmd {
