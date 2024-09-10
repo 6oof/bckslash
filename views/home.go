@@ -162,11 +162,7 @@ func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.WindowSizeMsg:
-		m.loading = true
 		constants.WinSize = msg
-		m.listLeft.SetSize(constants.BodyWidth()/2, constants.BodyHeight())
-		m.listRight.SetSize(constants.BodyWidth()/2, constants.BodyHeight())
-		m.loading = false
 	}
 
 	// Update the focused list
@@ -195,6 +191,8 @@ func (m homeModel) View() string {
 	if m.loading {
 		return layout.Layout("home", "", "loading...")
 	} else {
+		m.listLeft.SetSize(constants.BodyWidth()/2, constants.BodyHeight())
+		m.listRight.SetSize(constants.BodyWidth()/2, constants.BodyHeight())
 		return layout.Layout("home", constants.MainHelpString, compositions.HalfAndHalfComposition(m.listLeft.View(), m.listRight.View(), constants.BodyHeight()))
 
 	}

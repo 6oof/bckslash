@@ -75,6 +75,8 @@ func (m ProjectAddModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			homeModel := InitHomeModel()
 			return homeModel.Update(constants.WinSize)
 		}
+	case tea.WindowSizeMsg:
+		constants.WinSize = msg
 	case commands.ProgramErrMsg:
 		m.loading = false
 		m.form.State = huh.StateNormal

@@ -2,6 +2,7 @@ package views
 
 import (
 	"lg/views/commands"
+	"lg/views/constants"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -26,6 +27,7 @@ func (m ServerHelpModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return GoHome()
 		}
 	case tea.WindowSizeMsg:
+		constants.WinSize = msg
 	case commands.ExecStartMsg:
 		return m, commands.OpenGlowHelp()
 	case commands.ExecFinishedMsg:
