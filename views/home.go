@@ -162,6 +162,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.WindowSizeMsg:
+		m.loading = true
 		constants.WinSize = msg
 		m.listLeft.SetSize(constants.BodyWidth()/2, constants.BodyHeight())
 		m.listRight.SetSize(constants.BodyWidth()/2, constants.BodyHeight())
