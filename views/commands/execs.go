@@ -45,6 +45,13 @@ func OpenBTM() tea.Cmd {
 	})
 }
 
+func OpenGlowHelp() tea.Cmd {
+	c := exec.Command("glow", "mds") //nolint:gosec
+	return tea.ExecProcess(c, func(err error) tea.Msg {
+		return ExecFinishedMsg{Err: err, Content: ""}
+	})
+}
+
 func ShowNeofetch() tea.Cmd {
 	return func() tea.Msg {
 		// Start a goroutine to run the command asynchronously
@@ -59,13 +66,13 @@ func ShowNeofetch() tea.Cmd {
 	}
 }
 
-func AddProjectCommand(title, description, projectType string) tea.Cmd {
+func AddProjectCommand(title, projectType, repo, branch string) tea.Cmd {
 	return func() tea.Msg {
-
-		err := helpers.AddProject(title, description, projectType)
+		err := helpers.AddProjectFromCommand(title, projectType, repo, branch)
 		if err != nil {
 			return ProgramErrMsg{Err: err}
 		}
+
 		projects, err := helpers.GetProjects()
 		if err != nil {
 			return ProgramErrMsg{Err: err}
@@ -75,8 +82,8 @@ func AddProjectCommand(title, description, projectType string) tea.Cmd {
 			ProjectList: projects,
 		}
 	}
-
 }
+
 func DeleteProjectCommand(uuid string) tea.Cmd {
 	return func() tea.Msg {
 		err := helpers.RemoveProject(uuid)
