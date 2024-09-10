@@ -43,7 +43,7 @@ func (i project) Title() string       { return i.title }
 func (i project) Description() string { return i.desc }
 func (i project) FilterValue() string { return i.title }
 
-type model struct {
+type homeModel struct {
 	listLeft  list.Model
 	listRight list.Model
 	loading   bool
@@ -51,7 +51,7 @@ type model struct {
 	focus     int // 0 for left list, 1 for right list
 }
 
-func InitHomeModel() model {
+func InitHomeModel() homeModel {
 	itemsLeft := []list.Item{
 		item{title: "Add project", desc: "Add a project", navigation: addProject},
 		item{title: "Server info", desc: "Server monitoring dashboard", navigation: serverInfo},
@@ -67,7 +67,7 @@ func InitHomeModel() model {
 		itemsRight = append(itemsRight, project{title: p.Title, desc: p.UUID, uuid: p.UUID})
 	}
 
-	m := model{
+	m := homeModel{
 		listLeft:  list.New(itemsLeft, constants.UnfocusedListDelegate(), 20, 20),
 		listRight: list.New(itemsRight, constants.UnfocusedListDelegate(), 20, 20),
 		focus:     0, // Start with focus on the left list
@@ -83,7 +83,7 @@ func InitHomeModel() model {
 	return m
 }
 
-func (m *model) mapProjects(projects []helpers.Project) {
+func (m *homeModel) mapProjects(projects []helpers.Project) {
 	itemsRight := []list.Item{}
 
 	// Populate the new items from the project list
@@ -100,11 +100,11 @@ func GoHome() (tea.Model, tea.Cmd) {
 	return homeModel.Update(constants.WinSize)
 }
 
-func (m model) Init() tea.Cmd {
+func (m homeModel) Init() tea.Cmd {
 	return commands.LoadProjectsCmd()
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
@@ -120,20 +120,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case 0:
 				switch m.listLeft.SelectedItem().(item).navigation {
 				case addProject:
-					apm, _ := NewPeojectAddModel()
+					apm, _ := MakePeojectAddModel()
 					apm.Init()
 					return apm, nil
 				case serverStats:
-					return InitServerStatsModel().Update(commands.ExecStartMsg{})
+					return MakeServerStatsModel().Update(commands.ExecStartMsg{})
 
 				case serverInfo:
-					return InitServerInfoModel().Update(commands.ExecStartMsg{})
+					return MakeServerInfoModel().Update(commands.ExecStartMsg{})
 
 				case help:
-					return InitServerHelpModel().Update(commands.ExecStartMsg{})
+					return MakeServerHelpModel().Update(commands.ExecStartMsg{})
 
 				case serverSettings:
-					f, _ := NewEditorSelectionModel()
+					f, _ := MakeEditorSelectionModel()
 					f.Init()
 					return f, nil
 
@@ -143,7 +143,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case key.Matches(msg, constants.Keymap.Delete):
 			if m.focus == 1 {
-				pdm, _ := NewPeojectDeleteModel(m.listRight.SelectedItem().(project).uuid)
+				pdm, _ := MakePeojectDeleteModel(m.listRight.SelectedItem().(project).uuid)
 				pdm.Init()
 				return pdm, nil
 			}
@@ -179,7 +179,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m model) View() string {
+func (m homeModel) View() string {
 
 	if m.quitting {
 		return ""

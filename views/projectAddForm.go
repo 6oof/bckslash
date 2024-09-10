@@ -17,7 +17,7 @@ type ProjectAddModel struct {
 	loading bool
 }
 
-func NewPeojectAddModel() (ProjectAddModel, error) {
+func MakePeojectAddModel() (ProjectAddModel, error) {
 	// Load settings
 
 	fm := ProjectAddModel{

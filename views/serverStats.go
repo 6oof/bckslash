@@ -10,12 +10,12 @@ type ServerStatsModel struct {
 	Err error
 }
 
-func (m ServerStatsModel) Init() tea.Cmd {
-	return nil
+func MakeServerStatsModel() ServerStatsModel {
+	return ServerStatsModel{Err: nil}
 }
 
-func InitServerStatsModel() ServerStatsModel {
-	return ServerStatsModel{Err: nil}
+func (m ServerStatsModel) Init() tea.Cmd {
+	return nil
 }
 
 func (m ServerStatsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

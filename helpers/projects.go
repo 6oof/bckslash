@@ -127,7 +127,7 @@ func RemoveProject(projectUUID string) error {
 	}
 
 	// Filter out the project with the given UUID
-	newProjects := make([]Project, 0)
+	var newProjects []Project
 	found := false
 	for _, project := range projects {
 		if project.UUID != projectUUID {

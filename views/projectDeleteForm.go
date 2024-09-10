@@ -17,7 +17,7 @@ type ProjectDeleteModel struct {
 	loading     bool
 }
 
-func NewPeojectDeleteModel(uuid string) (ProjectDeleteModel, error) {
+func MakePeojectDeleteModel(uuid string) (ProjectDeleteModel, error) {
 	// Load settings
 
 	fm := ProjectDeleteModel{
