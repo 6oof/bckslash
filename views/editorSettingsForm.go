@@ -16,7 +16,7 @@ type EditorFormModel struct {
 	Err     error
 }
 
-func NewEditorSelectionModel() (EditorFormModel, error) {
+func MakeEditorSelectionModel() (EditorFormModel, error) {
 	// Load settings
 	settings, err := helpers.GetSettings()
 	if err != nil {

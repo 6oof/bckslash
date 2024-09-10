@@ -16,7 +16,7 @@ type ServerInfoModel struct {
 	Spinner spinner.Model
 }
 
-func InitServerInfoModel() ServerInfoModel {
+func MakeServerInfoModel() ServerInfoModel {
 	// Initialize the spinner with a default style
 	s := spinner.New()
 	s.Spinner = spinner.Dot
