@@ -2,6 +2,7 @@ package views
 
 import (
 	"lg/views/commands"
+	"lg/views/constants"
 	"lg/views/layout"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -27,6 +28,7 @@ func (m ServerSettingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return GoHome()
 		}
 	case tea.WindowSizeMsg:
+		constants.WinSize = msg
 	case commands.ExecStartMsg:
 		return m, commands.OpenEditor("bckslash_settings.json")
 	case commands.ExecFinishedMsg:

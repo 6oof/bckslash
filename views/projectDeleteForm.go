@@ -55,7 +55,8 @@ func (m ProjectDeleteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			homeModel := InitHomeModel()
 			return homeModel.Update(constants.WinSize)
 		}
-
+	case tea.WindowSizeMsg:
+		constants.WinSize = msg
 	}
 
 	form, cmd := m.form.Update(msg)
