@@ -14,6 +14,7 @@ type ProjectDeleteModel struct {
 	confirm     bool
 	projectUuid string
 	Err         error
+	loading     bool
 }
 
 func NewPeojectDeleteModel(uuid string) (ProjectDeleteModel, error) {
@@ -65,7 +66,7 @@ func (m ProjectDeleteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if m.form.State == huh.StateCompleted {
 		if m.confirm {
-
+			m.loading = true
 			return InitHomeModel(), commands.DeleteProjectCommand(m.projectUuid)
 		}
 
@@ -78,6 +79,10 @@ func (m ProjectDeleteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ProjectDeleteModel) View() string {
+	if m.loading {
+		return layout.Layout("Editor Selection", "q: Return home", "Loading...")
+	}
+
 	if m.Err != nil {
 		return layout.Layout("Editor Selection", "q: Return home", "Error: "+m.Err.Error()+"\n")
 	}

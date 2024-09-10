@@ -12,8 +12,9 @@ import (
 )
 
 type ProjectAddModel struct {
-	form *huh.Form // huh.Form is just a tea.Model
-	Err  error
+	form    *huh.Form // huh.Form is just a tea.Model
+	Err     error
+	loading bool
 }
 
 func NewPeojectAddModel() (ProjectAddModel, error) {
@@ -75,10 +76,12 @@ func (m ProjectAddModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return homeModel.Update(constants.WinSize)
 		}
 	case commands.ProgramErrMsg:
+		m.loading = false
 		m.form.State = huh.StateNormal
 		m.Err = msg.Err
 		return m, nil
 	case commands.ProjectListChangedMsg:
+		m.loading = false
 		return InitHomeModel().Update(msg)
 
 	}
@@ -89,6 +92,7 @@ func (m ProjectAddModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.form.State == huh.StateCompleted {
+		m.loading = true
 		m.form.State = huh.StateAborted
 		return m, commands.AddProjectCommand(m.form.GetString("name"), "project", m.form.GetString("repo"), m.form.GetString("branch"))
 	}
@@ -97,6 +101,10 @@ func (m ProjectAddModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ProjectAddModel) View() string {
+	if m.loading {
+		return layout.Layout("Editor Selection", "q: Return home", "Loading...")
+	}
+
 	if m.Err != nil {
 		return layout.Layout("Editor Selection", "q: Return home", "Error: "+m.Err.Error()+"\n")
 	}
