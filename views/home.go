@@ -21,6 +21,7 @@ const (
 	addProject
 	serverInfo
 	serverSettings
+	help
 	no
 )
 
@@ -56,7 +57,7 @@ func InitHomeModel() model {
 		item{title: "Server info", desc: "Server monitoring dashboard", navigation: serverInfo},
 		item{title: "Server stats", desc: "Server monitoring dashboard", navigation: serverStats},
 		item{title: "Edito settings", desc: "Pick prefered text editor to use when needed", navigation: serverSettings},
-		item{title: "Domains", desc: "Edit caddy configuration", navigation: no},
+		item{title: "Help", desc: "Basic information on bckslash", navigation: help},
 	}
 
 	itemsRight := []list.Item{}
@@ -74,7 +75,7 @@ func InitHomeModel() model {
 		loading:   true,
 	}
 
-	m.listLeft.Title = "Server"
+	m.listLeft.Title = "Bckslash actions"
 	m.listRight.Title = "Projects"
 	m.listRight.SetShowHelp(false)
 	m.listLeft.SetShowHelp(false)
@@ -119,12 +120,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case 0:
 				switch m.listLeft.SelectedItem().(item).navigation {
 				case addProject:
-					return m, commands.AddProjectCommand("aaa", "aaa", "aaa")
+					apm, _ := NewPeojectAddModel()
+					apm.Init()
+					return apm, nil
 				case serverStats:
 					return InitServerStatsModel().Update(commands.ExecStartMsg{})
 
 				case serverInfo:
 					return InitServerInfoModel().Update(commands.ExecStartMsg{})
+
+				case help:
+					return InitServerHelpModel().Update(commands.ExecStartMsg{})
 
 				case serverSettings:
 					f, _ := NewEditorSelectionModel()
@@ -149,6 +155,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// setup an err view and handle arr errors with it
 		panic(msg.Err)
 	case commands.ProjectListChangedMsg:
+		m.loading = true
 		m.mapProjects(msg.ProjectList)
 		projectsState = msg.ProjectList
 		m.loading = false
