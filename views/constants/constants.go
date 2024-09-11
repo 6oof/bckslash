@@ -10,6 +10,8 @@ import (
 // Constants and layout values
 const (
 	BarOffset = 8
+	MaxWidth  = 100
+	MaxHeight = 40
 )
 
 var WinSize tea.WindowSizeMsg
@@ -24,12 +26,11 @@ var (
 	// Styles
 	HelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render
 
-	DocStyle = lipgloss.NewStyle().Margin(1, 2)
+	DocStyle = lipgloss.NewStyle().Padding(1)
 
 	StatusBarStyle = lipgloss.NewStyle().
 			Foreground(DarkTextColor).
 			Background(SubtleColor).
-			Margin(1, 2, 1).
 			Height(1)
 
 	StatusStyle = lipgloss.NewStyle().
@@ -62,12 +63,21 @@ func UnfocusedListDelegate() list.DefaultDelegate {
 	return d
 }
 
+// Layout and rendering functions
 func BodyHeight() int {
-	return WinSize.Height - 4 - 4
+	// Ensure height does not exceed MaxHeight
+	if WinSize.Height > MaxHeight {
+		return MaxHeight
+	}
+	return WinSize.Height
 }
 
 func BodyWidth() int {
-	return WinSize.Width - 4
+	// Ensure width does not exceed MaxWidth
+	if WinSize.Width > MaxWidth {
+		return MaxWidth
+	}
+	return WinSize.Width
 }
 
 var MainHelpString string = "↑/↓: navigate  • esc: back • tab: switch focus • /: filter • d: delete • q: quit"
@@ -130,7 +140,13 @@ func RenderHelpBar(wi int, helpstring string) string {
 }
 
 func Layout(location, helpstring, children string) string {
-	return lipgloss.JoinVertical(lipgloss.Left, RenderBar(location), DocStyle.Render(children), RenderHelpBar(BodyWidth(), helpstring))
+	content := lipgloss.JoinVertical(lipgloss.Top,
+		RenderBar(location),
+		DocStyle.Render(children),
+		RenderHelpBar(BodyWidth(), helpstring),
+	)
+	// Apply border style to the entire layout
+	return content
 }
 
 func ListStyle() list.Styles {

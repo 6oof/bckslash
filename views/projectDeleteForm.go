@@ -51,8 +51,7 @@ func (m ProjectDeleteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "esc", "q":
 			// Return to home on escape
-			homeModel := InitHomeModel()
-			return homeModel.Update(constants.WinSize)
+			return GoToProjects()
 		}
 	case tea.WindowSizeMsg:
 		constants.WinSize = msg
@@ -67,12 +66,11 @@ func (m ProjectDeleteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.form.State == huh.StateCompleted {
 		if m.confirm {
 			m.loading = true
-			return InitHomeModel(), commands.DeleteProjectCommand(m.projectUuid)
+			return MakeProjectsModel(), commands.DeleteProjectCommand(m.projectUuid)
 		}
 
 		// Return to home after saving
-		homeModel := InitHomeModel()
-		return homeModel.Update(constants.WinSize)
+		return GoToProjects()
 	}
 
 	return m, cmd
