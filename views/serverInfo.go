@@ -3,7 +3,6 @@ package views
 import (
 	"lg/views/commands"
 	"lg/views/constants"
-	"lg/views/layout"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -72,12 +71,12 @@ func (m ServerInfoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m ServerInfoModel) View() string {
 	if m.Loading {
 		// Show the spinner while loading
-		return layout.Layout("Server Info", "q: Return home", m.Spinner.View()+" Loading...")
+		return constants.Layout("Server Info", "q: Return home", m.Spinner.View()+" Loading...")
 	}
 
 	if m.Err != nil {
-		return layout.Layout("Server Info", "q: Return home", "Error: "+m.Err.Error()+"\n")
+		return constants.Layout("Server Info", "q: Return home", "Error: "+m.Err.Error()+"\n")
 	}
 
-	return layout.Layout("Server Info", "q: Return home", m.Content)
+	return constants.Layout("Server Info", "q: Return home", m.Content)
 }

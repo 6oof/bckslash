@@ -3,7 +3,6 @@ package views
 import (
 	"lg/views/commands"
 	"lg/views/constants"
-	"lg/views/layout"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -44,7 +43,7 @@ func (m ServerSettingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m ServerSettingsModel) View() string {
 	if m.Err != nil {
-		return layout.Layout("Server Info", "q: Return home", "Error: "+m.Err.Error()+"\n")
+		return constants.Layout("Server Info", "q: Return home", "Error: "+m.Err.Error()+"\n")
 	}
 	return "Press 'q' to quit."
 }
