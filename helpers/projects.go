@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/google/uuid"
+	"github.com/lithammer/shortuuid/v4"
 )
 
 // Mutex to ensure thread-safe access to projects
@@ -93,7 +93,7 @@ func AddProject(pro Project) error {
 func AddProjectFromCommand(title, projectType, repo, branch string) error {
 	pro := Project{
 		Title:      title,
-		UUID:       uuid.New().String(),
+		UUID:       shortuuid.New(),
 		Repository: repo,
 		Branch:     branch,
 		Type:       projectType,
