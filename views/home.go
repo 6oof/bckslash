@@ -3,9 +3,7 @@ package views
 import (
 	"lg/helpers"
 	"lg/views/commands"
-	"lg/views/compositions"
 	"lg/views/constants"
-	"lg/views/layout"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -73,6 +71,9 @@ func InitHomeModel() homeModel {
 		focus:     0, // Start with focus on the left list
 		quitting:  false,
 	}
+
+	m.listLeft.Styles = constants.ListStyle()
+	m.listRight.Styles = constants.ListStyle()
 
 	m.listLeft.Title = "Bckslash actions"
 	m.listRight.Title = "Projects"
@@ -186,11 +187,11 @@ func (m homeModel) View() string {
 
 	// Set the width for the lists and render them
 	if m.loading {
-		return layout.Layout("home", "", "loading...")
+		return constants.Layout("home", "", "loading...")
 	} else {
 		m.listLeft.SetSize(constants.BodyWidth()/2, constants.BodyHeight())
 		m.listRight.SetSize(constants.BodyWidth()/2, constants.BodyHeight())
-		return layout.Layout("home", constants.MainHelpString, compositions.HalfAndHalfComposition(m.listLeft.View(), m.listRight.View(), constants.BodyHeight()))
+		return constants.Layout("home", constants.MainHelpString, constants.HalfAndHalfComposition(m.listLeft.View(), m.listRight.View(), constants.BodyHeight()))
 
 	}
 }

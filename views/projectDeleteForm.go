@@ -3,7 +3,6 @@ package views
 import (
 	"lg/views/commands"
 	"lg/views/constants"
-	"lg/views/layout"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
@@ -81,12 +80,12 @@ func (m ProjectDeleteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m ProjectDeleteModel) View() string {
 	if m.loading {
-		return layout.Layout("Editor Selection", "q: Return home", "Loading...")
+		return constants.Layout("Editor Selection", "q: Return home", "Loading...")
 	}
 
 	if m.Err != nil {
-		return layout.Layout("Editor Selection", "q: Return home", "Error: "+m.Err.Error()+"\n")
+		return constants.Layout("Editor Selection", "q: Return home", "Error: "+m.Err.Error()+"\n")
 	}
 
-	return layout.Layout("Editor Selection", "q: back", m.form.View())
+	return constants.Layout("Editor Selection", "q: back", m.form.View())
 }

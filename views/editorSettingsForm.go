@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"lg/helpers"
 	"lg/views/constants"
-	"lg/views/layout"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
@@ -105,8 +104,8 @@ func (m EditorFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m EditorFormModel) View() string {
 	if m.Err != nil {
-		return layout.Layout("Editor Selection", "q: Return home", "Error: "+m.Err.Error()+"\n")
+		return constants.Layout("Editor Selection", "q: Return home", "Error: "+m.Err.Error()+"\n")
 	}
 
-	return layout.Layout("Editor Selection", "q: back", m.form.View())
+	return constants.Layout("Editor Selection", "q: back", m.form.View())
 }
