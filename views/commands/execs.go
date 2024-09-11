@@ -2,6 +2,7 @@ package commands
 
 import (
 	"lg/helpers"
+	"os"
 	"os/exec"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -45,11 +46,15 @@ func OpenBTM() tea.Cmd {
 	})
 }
 
-func OpenGlowHelp() tea.Cmd {
-	c := exec.Command("glow", "mds") //nolint:gosec
-	return tea.ExecProcess(c, func(err error) tea.Msg {
-		return ExecFinishedMsg{Err: err, Content: ""}
-	})
+func OpenHelpMd() tea.Cmd {
+	return func() tea.Msg {
+		// Read the content of the HELP.md file
+		content, err := os.ReadFile("mds/HELP.md")
+		if err != nil {
+			return ProgramErrMsg{Err: err}
+		}
+		return ExecFinishedMsg{Err: nil, Content: string(content)}
+	}
 }
 
 func ShowNeofetch() tea.Cmd {

@@ -104,8 +104,8 @@ func (m EditorFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m EditorFormModel) View() string {
 	if m.Err != nil {
-		return constants.Layout("Editor Selection", "q: Return home", "Error: "+m.Err.Error()+"\n")
+		return constants.Layout("Editor Selection", "q: Return home", constants.PadBodyContent.Render("Error: "+m.Err.Error()+"\n"))
 	}
 
-	return constants.Layout("Editor Selection", "q: back", m.form.View())
+	return constants.Layout("Editor Selection", "q: back", constants.PadBodyContent.Render(m.form.View()))
 }
