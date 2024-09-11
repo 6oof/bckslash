@@ -36,7 +36,7 @@ func MakeProjectsModel() projectsModel {
 	}
 
 	m := projectsModel{
-		projectList: list.New(itemsRight, constants.UnfocusedListDelegate(), 20, 20),
+		projectList: list.New(itemsRight, constants.CustomDelegate(), 20, 20),
 		quitting:    false,
 		loading:     true,
 	}
@@ -114,8 +114,6 @@ func (m projectsModel) View() string {
 	if m.quitting {
 		return ""
 	}
-
-	m.projectList.SetDelegate(constants.FocusedListDelegate())
 
 	// Set the width for the lists and render them
 	if m.loading {

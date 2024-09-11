@@ -47,7 +47,7 @@ func InitHomeModel() homeModel {
 	}
 
 	m := homeModel{
-		listLeft: list.New(itemsLeft, constants.FocusedListDelegate(), 20, 20),
+		listLeft: list.New(itemsLeft, constants.CustomDelegate(), 20, 20),
 		quitting: false,
 	}
 

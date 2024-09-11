@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type ServerInfoModel struct {
@@ -78,5 +79,5 @@ func (m ServerInfoModel) View() string {
 		return constants.Layout("Server Info", "q: Return home", "Error: "+m.Err.Error()+"\n")
 	}
 
-	return constants.Layout("Server Info", "q: Return home", m.Content)
+	return constants.Layout("Server Info", "q: Return home", lipgloss.PlaceHorizontal(constants.BodyWidth(), lipgloss.Left, m.Content))
 }

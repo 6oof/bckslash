@@ -49,17 +49,16 @@ var (
 )
 
 // Layout and rendering functions
-func FocusedListDelegate() list.DefaultDelegate {
+func ListStyle() list.Styles {
+	listStyle := list.DefaultStyles()
+	listStyle.Title = listStyle.Title.Background(HighlightColor)
+	return listStyle
+}
+
+func CustomDelegate() list.DefaultDelegate {
 	d := list.NewDefaultDelegate()
 	d.Styles.SelectedTitle = d.Styles.SelectedTitle.Foreground(HighlightColor).BorderLeftForeground(HighlightColor)
 	d.Styles.SelectedDesc = d.Styles.SelectedDesc.Foreground(HighlightColor).BorderLeftForeground(HighlightColor)
-	return d
-}
-
-func UnfocusedListDelegate() list.DefaultDelegate {
-	d := list.NewDefaultDelegate()
-	d.Styles.SelectedTitle = d.Styles.NormalTitle
-	d.Styles.SelectedDesc = d.Styles.NormalDesc
 	return d
 }
 
@@ -145,14 +144,7 @@ func Layout(location, helpstring, children string) string {
 		DocStyle.Render(children),
 		RenderHelpBar(BodyWidth(), helpstring),
 	)
+
 	// Apply border style to the entire layout
-	return content
-}
-
-func ListStyle() list.Styles {
-	listStyle := list.DefaultStyles()
-
-	listStyle.Title = listStyle.Title.Background(HighlightColor)
-
-	return listStyle
+	return lipgloss.Place(WinSize.Width, WinSize.Height, lipgloss.Center, lipgloss.Center, content)
 }
