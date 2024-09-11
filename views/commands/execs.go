@@ -55,7 +55,7 @@ func OpenGlowHelp() tea.Cmd {
 func ShowNeofetch() tea.Cmd {
 	return func() tea.Msg {
 		// Start a goroutine to run the command asynchronously
-		c := exec.Command("neofetch") //nolint:gosec
+		c := exec.Command("neofetch", "--off") //nolint:gosec
 		out, err := c.Output()
 
 		// Return the result as a message when the command finishes
