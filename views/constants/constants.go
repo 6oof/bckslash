@@ -9,9 +9,10 @@ import (
 
 // Constants and layout values
 const (
-	BarOffset = 8
-	MaxWidth  = 100
-	MaxHeight = 40
+	BarOffset        = 8
+	MaxWidth         = 100
+	MaxHeight        = 40
+	MinWidthForSplit = 80
 )
 
 var WinSize tea.WindowSizeMsg
@@ -26,12 +27,16 @@ var (
 	// Styles
 	HelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render
 
-	DocStyle = lipgloss.NewStyle().Padding(1)
+	DocStyle = lipgloss.NewStyle().Width(BodyWidth()).Height(BodyHeight())
+
+	PadBodyContent = lipgloss.NewStyle().Padding(2, 0)
 
 	StatusBarStyle = lipgloss.NewStyle().
 			Foreground(DarkTextColor).
 			Background(SubtleColor).
-			Height(1)
+			Width(BodyWidth()).
+			Height(1).
+			MaxHeight(1)
 
 	StatusStyle = lipgloss.NewStyle().
 			Inherit(StatusBarStyle).
@@ -51,7 +56,7 @@ var (
 // Layout and rendering functions
 func ListStyle() list.Styles {
 	listStyle := list.DefaultStyles()
-	listStyle.Title = listStyle.Title.Background(HighlightColor)
+	listStyle.Title = listStyle.Title.Background(HighlightColor).MarginTop(1)
 	return listStyle
 }
 
@@ -79,7 +84,7 @@ func BodyWidth() int {
 	return WinSize.Width
 }
 
-var MainHelpString string = "↑/↓: navigate  • esc: back • tab: switch focus • /: filter • d: delete • q: quit"
+var MainHelpString string = "↑/↓: navigate  • esc: back • /: filter • d: delete • q: quit"
 
 // Keymap struct and key bindings
 type keymap struct {
@@ -115,9 +120,27 @@ var Keymap = keymap{
 }
 
 // Composition and layout rendering functions
-func HalfAndHalfComposition(left, right string, height int) string {
-	leftList := lipgloss.NewStyle().Width(BodyWidth() / 2).Height(height).Render(left)
-	rightList := lipgloss.NewStyle().Width(BodyWidth() / 2).Height(height).Render(right)
+
+func BodyHalfWidth() int {
+	// If the screen is too narrow, return the full width
+	if BodyWidth() < MinWidthForSplit {
+		return BodyWidth()
+	}
+
+	// Otherwise, return half of the available width
+	return BodyWidth() / 2
+}
+
+func HalfAndHalfComposition(left, right string) string {
+	// Check if the screen width is smaller than the defined minimum width for splitting
+	if BodyWidth() < MinWidthForSplit {
+		// If the screen is too narrow, only display the left half
+		return lipgloss.NewStyle().Width(BodyWidth()).Height(BodyHeight()).Render(left)
+	}
+
+	// Otherwise, display both the left and right halves
+	leftList := lipgloss.NewStyle().Width(BodyWidth() / 2).Height(BodyHeight()).Render(left)
+	rightList := lipgloss.NewStyle().Width(BodyWidth() / 2).Height(BodyHeight()).Render(right)
 	return lipgloss.JoinHorizontal(lipgloss.Top, leftList, rightList)
 }
 
@@ -147,4 +170,9 @@ func Layout(location, helpstring, children string) string {
 
 	// Apply border style to the entire layout
 	return lipgloss.Place(WinSize.Width, WinSize.Height, lipgloss.Center, lipgloss.Center, content)
+}
+
+func Card(content string, width, height int) string {
+	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, content, lipgloss.WithWhitespaceChars(`\`), lipgloss.WithWhitespaceForeground(lipgloss.Color("235")))
+
 }

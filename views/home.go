@@ -31,30 +31,30 @@ func (i item) Description() string { return i.desc }
 func (i item) FilterValue() string { return i.title }
 
 type homeModel struct {
-	listLeft list.Model
+	mainNav  list.Model
 	loading  bool
 	quitting bool
 }
 
 func InitHomeModel() homeModel {
 	itemsLeft := []list.Item{
-		item{title: "List Projects", desc: "Open project list", navigation: listProjects},
+		item{title: "Projects", desc: "Open project list", navigation: listProjects},
 		item{title: "Add a project", desc: "Add a project", navigation: addProject},
 		item{title: "Server info", desc: "Server monitoring dashboard", navigation: serverInfo},
-		item{title: "Server stats", desc: "Server monitoring dashboard", navigation: serverStats},
+		item{title: "Resource usage", desc: "Open system monitoring dashboard", navigation: serverStats},
 		item{title: "Edito settings", desc: "Pick prefered text editor to use when needed", navigation: serverSettings},
 		item{title: "Help", desc: "Basic information on bckslash", navigation: help},
 	}
 
 	m := homeModel{
-		listLeft: list.New(itemsLeft, constants.CustomDelegate(), 20, 20),
+		mainNav:  list.New(itemsLeft, constants.CustomDelegate(), 40, 30),
 		quitting: false,
 	}
 
-	m.listLeft.Styles = constants.ListStyle()
+	m.mainNav.Styles = constants.ListStyle()
 
-	m.listLeft.Title = "Bckslash actions"
-	m.listLeft.SetShowHelp(false)
+	m.mainNav.Title = "Bckslash actions"
+	m.mainNav.SetShowHelp(false)
 
 	return m
 }
@@ -76,7 +76,7 @@ func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 		case key.Matches(msg, constants.Keymap.Enter):
-			switch m.listLeft.SelectedItem().(item).navigation {
+			switch m.mainNav.SelectedItem().(item).navigation {
 			case addProject:
 				apm := MakePeojectAddModel()
 				return apm, apm.Init()
@@ -108,12 +108,13 @@ func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	var cmd tea.Cmd
-	m.listLeft, cmd = m.listLeft.Update(msg)
+	m.mainNav, cmd = m.mainNav.Update(msg)
 
 	return m, cmd
 }
 
 func (m homeModel) View() string {
+	homeCard := "Welcome to Bckslash!\n\nget help at: https://github.com/6oof/bckslash"
 
 	if m.quitting {
 		return ""
@@ -123,8 +124,8 @@ func (m homeModel) View() string {
 	if m.loading {
 		return constants.Layout("home", "", "loading...")
 	} else {
-		m.listLeft.SetSize(constants.BodyWidth()/2, constants.BodyHeight())
-		return constants.Layout("home", constants.MainHelpString, m.listLeft.View())
+		m.mainNav.SetSize(constants.BodyHalfWidth(), constants.BodyHeight())
+		return constants.Layout("home", constants.MainHelpString, constants.HalfAndHalfComposition(m.mainNav.View(), constants.Card(homeCard, constants.BodyHalfWidth(), constants.BodyHeight())))
 
 	}
 }
