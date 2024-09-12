@@ -83,12 +83,6 @@ func (m projectsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, constants.Keymap.Enter):
 			uuid := m.projectList.SelectedItem().(project).uuid
 			return MakeProjectModel(), commands.FetchProject(uuid)
-
-		case key.Matches(msg, constants.Keymap.Delete):
-			pdm, _ := MakePeojectDeleteModel(m.projectList.SelectedItem().(project).uuid)
-			pdm.Init()
-			return pdm, nil
-
 		}
 
 	case commands.ProgramErrMsg:

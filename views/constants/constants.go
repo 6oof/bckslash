@@ -12,7 +12,7 @@ const (
 	BarOffset        = 8
 	MaxWidth         = 100
 	MaxHeight        = 40
-	MinWidthForSplit = 80
+	MinWidthForSplit = 100
 )
 
 var WinSize tea.WindowSizeMsg
@@ -84,7 +84,7 @@ func BodyWidth() int {
 	return WinSize.Width
 }
 
-var MainHelpString string = "↑/↓: navigate  • esc: back • /: filter • d: delete • q: quit"
+var MainHelpString string = "↑/↓: navigate  • esc: back • /: filter • q: quit"
 
 // Keymap struct and key bindings
 type keymap struct {
@@ -172,7 +172,7 @@ func Layout(location, helpstring, children string) string {
 	return lipgloss.Place(WinSize.Width, WinSize.Height, lipgloss.Center, lipgloss.Center, content)
 }
 
-func Card(content string, width, height int) string {
-	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, content, lipgloss.WithWhitespaceChars(`\`), lipgloss.WithWhitespaceForeground(lipgloss.Color("235")))
+func Card(content, background string, width, height int) string {
+	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, content, lipgloss.WithWhitespaceChars(background), lipgloss.WithWhitespaceForeground(lipgloss.Color("235")))
 
 }
