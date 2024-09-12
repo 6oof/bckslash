@@ -5,14 +5,21 @@ import (
 	"lg/views/commands"
 	"lg/views/constants"
 
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
+const (
+	deleteProject navigate = iota
+)
+
 type ProjectModel struct {
 	Err     error
 	project helpers.Project
+	Menu    list.Model
 	Loading bool
 	Spinner spinner.Model
 }
@@ -24,10 +31,22 @@ func MakeProjectModel() ProjectModel {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 
-	return ProjectModel{
+	menuItems := []list.Item{
+		item{title: "Delete a project", desc: "You'll be asked to confirm", navigation: deleteProject},
+	}
+
+	m := ProjectModel{
 		Spinner: s,
 		Loading: true,
+		Menu:    list.New(menuItems, constants.CustomDelegate(), constants.BodyHalfWidth(), constants.BodyHeight()),
 	}
+
+	m.Menu.Styles = constants.ListStyle()
+
+	m.Menu.Title = "Project actions"
+	m.Menu.SetShowHelp(false)
+
+	return m
 }
 
 func (m ProjectModel) Init() tea.Cmd {
@@ -41,6 +60,15 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return GoHome()
+		}
+		switch {
+		case key.Matches(msg, constants.Keymap.Enter):
+			switch m.Menu.SelectedItem().(item).navigation {
+			case deleteProject:
+				pdm, _ := MakePeojectDeleteModel(m.project.UUID)
+				pdm.Init()
+				return pdm, nil
+			}
 		}
 	case tea.WindowSizeMsg:
 		constants.WinSize = msg
@@ -59,7 +87,10 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	return m, nil
+	var cmd tea.Cmd
+	m.Menu, cmd = m.Menu.Update(msg)
+
+	return m, cmd
 }
 
 func (m ProjectModel) View() string {
@@ -72,5 +103,21 @@ func (m ProjectModel) View() string {
 		return constants.Layout("Server Info", "q: Return home", constants.PadBodyContent.Render("Error: "+m.Err.Error()+"\n"))
 	}
 
-	return constants.Layout("Server Info", "q: Return home", lipgloss.PlaceHorizontal(constants.BodyWidth(), lipgloss.Left, constants.PadBodyContent.Render(m.project.UUID)))
+	m.Menu.SetSize(constants.BodyHalfWidth(), constants.BodyHeight())
+	return constants.Layout(
+		"Server Info", "q: Return home",
+		lipgloss.PlaceHorizontal(
+			constants.BodyWidth(),
+			lipgloss.Left,
+			constants.HalfAndHalfComposition(
+				m.Menu.View(),
+				constants.Card(
+					m.project.UUID,
+					`.`,
+					constants.BodyHalfWidth(),
+					constants.BodyHeight(),
+				),
+			),
+		),
+	)
 }

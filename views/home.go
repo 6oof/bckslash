@@ -41,7 +41,7 @@ func InitHomeModel() homeModel {
 		item{title: "Projects", desc: "Open project list", navigation: listProjects},
 		item{title: "Add a project", desc: "Add a project", navigation: addProject},
 		item{title: "Server info", desc: "Server monitoring dashboard", navigation: serverInfo},
-		item{title: "Resource usage", desc: "Open system monitoring dashboard", navigation: serverStats},
+		item{title: "Server stats", desc: "Server monitoring dashboard", navigation: serverStats},
 		item{title: "Edito settings", desc: "Pick prefered text editor to use when needed", navigation: serverSettings},
 		item{title: "Help", desc: "Basic information on bckslash", navigation: help},
 	}
@@ -65,7 +65,7 @@ func GoHome() (tea.Model, tea.Cmd) {
 }
 
 func (m homeModel) Init() tea.Cmd {
-	return commands.LoadProjectsCmd()
+	return nil
 }
 
 func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -114,7 +114,7 @@ func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m homeModel) View() string {
-	homeCard := "Welcome to Bckslash!\n\nget help at: https://github.com/6oof/bckslash"
+	homeCard := "Welcome to Bckslash!\n\nget help at: github.com/6oof/bckslash"
 
 	if m.quitting {
 		return ""
@@ -125,7 +125,19 @@ func (m homeModel) View() string {
 		return constants.Layout("home", "", "loading...")
 	} else {
 		m.mainNav.SetSize(constants.BodyHalfWidth(), constants.BodyHeight())
-		return constants.Layout("home", constants.MainHelpString, constants.HalfAndHalfComposition(m.mainNav.View(), constants.Card(homeCard, constants.BodyHalfWidth(), constants.BodyHeight())))
+		return constants.Layout(
+			"home",
+			constants.MainHelpString,
+			constants.HalfAndHalfComposition(
+				m.mainNav.View(),
+				constants.Card(
+					homeCard,
+					`\`,
+					constants.BodyHalfWidth(),
+					constants.BodyHeight(),
+				),
+			),
+		)
 
 	}
 }

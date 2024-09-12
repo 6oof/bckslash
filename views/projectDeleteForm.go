@@ -85,5 +85,5 @@ func (m ProjectDeleteModel) View() string {
 		return constants.Layout("Editor Selection", "q: Return home", "Error: "+m.Err.Error()+"\n")
 	}
 
-	return constants.Layout("Editor Selection", "q: back", m.form.View())
+	return constants.Layout("Editor Selection", "q: back", constants.PadBodyContent.Render(m.form.View()))
 }
