@@ -15,6 +15,10 @@ type ExecFinishedMsg struct {
 
 type ExecStartMsg struct{}
 
+type ProjectFoundMsg struct {
+	Project helpers.Project
+}
+
 type ProgramErrMsg struct {
 	Err error
 }
@@ -24,6 +28,18 @@ type ProjectListChangedMsg struct {
 }
 
 type ReturnHomeMsg struct{}
+
+func FetchProject(uuid string) tea.Cmd {
+	return func() tea.Msg {
+		proj, err := helpers.GetProject(uuid)
+		if err != nil {
+			return ProgramErrMsg{
+				Err: err,
+			}
+		}
+		return ProjectFoundMsg{Project: proj}
+	}
+}
 
 func OpenEditor(filepath string) tea.Cmd {
 	settings, err := helpers.GetSettings()
