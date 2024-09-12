@@ -3,6 +3,7 @@ package helpers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -24,6 +25,10 @@ type Project struct {
 	Type       string `json:"type"`
 }
 
+func makeProjectsStore() error {
+	return os.WriteFile("bckslash_projects.json", []byte{}, 0644)
+}
+
 // GetProjects reads the JSON file and unmarshals it into a slice of Project structs
 func GetProjects() ([]Project, error) {
 
@@ -31,8 +36,9 @@ func GetProjects() ([]Project, error) {
 	file, err := os.Open("bckslash_projects.json")
 	if err != nil {
 		if os.IsNotExist(err) {
+			err := makeProjectsStore()
 			// Return an empty slice if the file doesn't exist yet
-			return []Project{}, nil
+			return []Project{}, err
 		}
 		return nil, fmt.Errorf("unable to open projects file: %w", err)
 	}
@@ -52,6 +58,44 @@ func GetProjects() ([]Project, error) {
 	}
 
 	return projects, nil
+}
+
+func GetProject(uuid string) (Project, error) {
+	ep := Project{}
+
+	file, err := os.Open("bckslash_projects.json")
+	if err != nil {
+		if os.IsNotExist(err) {
+			err := makeProjectsStore()
+			// Return an empty slice if the file doesn't exist yet
+			return ep, err
+		}
+
+		return ep, fmt.Errorf("unable to open projects file: %w", err)
+	}
+	defer file.Close()
+
+	// Read the file content
+	bytes, err := io.ReadAll(file)
+	if err != nil {
+		return ep, fmt.Errorf("unable to read projects file: %w", err)
+	}
+
+	// Unmarshal the JSON into a slice of Project structs
+	var projects []Project
+	err = json.Unmarshal(bytes, &projects)
+	if err != nil {
+		return ep, fmt.Errorf("unable to parse projects: %w", err)
+	}
+
+	for _, project := range projects {
+		if project.UUID == uuid {
+			return project, nil
+		}
+	}
+
+	return ep, errors.New("Project with selected id not found")
+
 }
 
 // SaveProjects marshals the slice of Project structs and writes it to the JSON file
