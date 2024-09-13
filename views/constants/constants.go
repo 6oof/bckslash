@@ -61,9 +61,9 @@ var (
 func BodyHeight() int {
 	// Ensure height does not exceed MaxHeight
 	if WinSize.Height > MaxHeight {
-		return MaxHeight
+		return MaxHeight - 8
 	}
-	return WinSize.Height
+	return WinSize.Height - 8
 }
 
 func BodyWidth() int {
