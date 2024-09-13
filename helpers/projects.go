@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"sync"
 
@@ -171,8 +172,40 @@ func AddProjectFromCommand(title, projectType, repo, branch string) error {
 		return fmt.Errorf("git clone failed: %v\nstdout: %s\nstderr: %s\n If you're sure the repository exists, please add the Deploy key (ssh)", err, stdoutBuf.String(), stderrBuf.String())
 	}
 
+	_ = resolveEnvOnCreate(pro.UUID)
+
 	// If cloning succeeded, proceed with adding the project
 	return AddProject(pro)
+}
+
+func resolveEnvOnCreate(uuid string) error {
+	// solve .env
+	// Open the projects file
+	file, err := os.Open(path.Join("projects", uuid, ".env"))
+	defer file.Close()
+	if err != nil {
+		if os.IsNotExist(err) {
+
+			fileExample, err := os.Open(path.Join("projects", uuid, ".env.example"))
+			defer file.Close()
+			if err != nil {
+				return err
+			}
+			bytes, err := io.ReadAll(fileExample)
+			if err != nil {
+
+				return fmt.Errorf("unable to read projects file: %w", err)
+			}
+
+			err = os.WriteFile(path.Join("projects", uuid, ".env"), bytes, 0664)
+
+			// Return an empty slice if the file doesn't exist yet
+			return err
+		}
+		return fmt.Errorf("unable to open projects file: %w", err)
+	}
+
+	return nil
 }
 
 // RemoveProject removes a project from the list by its UUID
