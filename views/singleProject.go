@@ -14,6 +14,7 @@ import (
 
 const (
 	deleteProject navigate = iota
+	editEnv
 )
 
 type ProjectModel struct {
@@ -34,6 +35,7 @@ func MakeProjectModel() ProjectModel {
 	s.Spinner = spinner.Dot
 
 	menuItems := []list.Item{
+		item{title: "Enviroment", desc: "Edit .env file", navigation: editEnv},
 		item{title: "Delete a project", desc: "You'll be asked to confirm", navigation: deleteProject},
 	}
 
@@ -71,6 +73,8 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				pdm, _ := MakePeojectDeleteModel(m.project.UUID)
 				pdm.Init()
 				return pdm, nil
+			case editEnv:
+				return MakeProjectEnvModel(m.project.UUID).Update(commands.ExecStartMsg{})
 			}
 		}
 	case tea.WindowSizeMsg:
