@@ -19,6 +19,10 @@ type ProjectFoundMsg struct {
 	Project helpers.Project
 }
 
+type ProjectViewData struct {
+	GitLog string
+}
+
 type ProgramErrMsg struct {
 	Err error
 }
@@ -60,6 +64,18 @@ func OpenBTM() tea.Cmd {
 	return tea.ExecProcess(c, func(err error) tea.Msg {
 		return ExecFinishedMsg{Err: err, Content: ""}
 	})
+}
+
+func FetchProjectData(uuid string) tea.Cmd {
+	return func() tea.Msg {
+
+		status, err := helpers.FetchProjectGitStatus(uuid)
+
+		if err != nil {
+			return ProjectViewData{GitLog: err.Error()}
+		}
+		return ProjectViewData{GitLog: status}
+	}
 }
 
 func OpenHelpMd() tea.Cmd {

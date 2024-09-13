@@ -11,11 +11,36 @@ type BckslashSettings struct {
 	EditorCommand string `json:"editor_command"`
 }
 
+func makeSettingsStore() error {
+	settings := &BckslashSettings{
+		EditorCommand: "nano",
+	}
+
+	bytes, err := json.MarshalIndent(settings, "", "  ")
+	if err != nil {
+		return fmt.Errorf("unable to marshal settings: %w", err)
+	}
+
+	// Write the JSON content back to the file
+	err = os.WriteFile("bckslash_settings.json", bytes, 0644)
+	if err != nil {
+		return fmt.Errorf("unable to write settings file: %w", err)
+	}
+
+	return nil
+}
+
 // GetSettings reads the JSON file and unmarshals it into a BckslashSettings struct
 func GetSettings() (*BckslashSettings, error) {
 	// Open the settings file
 	file, err := os.Open("bckslash_settings.json")
 	if err != nil {
+		if os.IsNotExist(err) {
+			err := makeSettingsStore()
+			// Return an empty slice if the file doesn't exist yet
+			return &BckslashSettings{}, err
+		}
+
 		return nil, fmt.Errorf("unable to open settings file: %w", err)
 	}
 	defer file.Close()

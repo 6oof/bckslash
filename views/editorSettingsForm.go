@@ -19,7 +19,7 @@ func MakeEditorSelectionModel() EditorFormModel {
 	// Load settings
 	settings, err := helpers.GetSettings()
 	if err != nil {
-		return EditorFormModel{Err: fmt.Errorf("failed to load settings: %w", err)}
+		return EditorFormModel{Err: fmt.Errorf("%w", err)}
 	}
 
 	fm := EditorFormModel{
@@ -45,12 +45,15 @@ func MakeEditorSelectionModel() EditorFormModel {
 				Negative("No.").
 				Value(&fm.confirm),
 		),
-	)
+	).WithTheme(constants.HuhBsTheme())
 
 	return fm
 }
 
 func (m EditorFormModel) Init() tea.Cmd {
+	if m.Err != nil {
+		return nil
+	}
 	return m.form.Init()
 }
 

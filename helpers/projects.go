@@ -26,7 +26,21 @@ type Project struct {
 }
 
 func makeProjectsStore() error {
-	return os.WriteFile("bckslash_projects.json", []byte{}, 0644)
+	projects := []Project{}
+
+	// Marshal the Project slice into JSON with indentation
+	bytes, err := json.MarshalIndent(projects, "", "  ")
+	if err != nil {
+		return fmt.Errorf("unable to marshal projects: %w", err)
+	}
+
+	// Write the JSON content back to the file
+	err = os.WriteFile("bckslash_projects.json", bytes, 0644)
+	if err != nil {
+		return fmt.Errorf("unable to write projects file: %w", err)
+	}
+
+	return nil
 }
 
 // GetProjects reads the JSON file and unmarshals it into a slice of Project structs
@@ -224,4 +238,18 @@ func RemoveProject(projectUUID string) error {
 	}
 
 	return nil
+}
+
+func FetchProjectGitStatus(uuid string) (string, error) {
+
+	projectDir := filepath.Join("projects", uuid)
+
+	psCmd := exec.Command("git", "--no-pager", "log", "-1", "--format=%h %cd", "--date=iso")
+	psCmd.Dir = projectDir // Set the working directory to the project folder
+	psOutput, err := psCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to check git log in %s: %v", projectDir, err)
+	}
+
+	return string(psOutput), nil
 }
