@@ -36,7 +36,7 @@ func MakePeojectDeleteModel(uuid string) (ProjectDeleteModel, error) {
 				Negative("No.").
 				Value(&fm.confirm),
 		),
-	)
+	).WithTheme(constants.HuhBsTheme())
 
 	return fm, nil
 }

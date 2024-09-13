@@ -56,7 +56,7 @@ func MakePeojectAddModel() ProjectAddModel {
 					return nil
 				}),
 		),
-	)
+	).WithTheme(constants.HuhBsTheme())
 
 	return fm
 }

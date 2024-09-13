@@ -35,10 +35,10 @@ func (m ServerHelpModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return GoHome()
 		case "up", "k":
-			m.Viewport.LineUp(1) // Move up
+			m.Viewport.LineUp(3) // Move up
 			return m, nil
 		case "down", "j":
-			m.Viewport.LineDown(1) // Move down
+			m.Viewport.LineDown(3) // Move down
 			return m, nil
 		case "pageup":
 			m.Viewport.LineUp(m.Viewport.Height / 2) // Move up by half the viewport height

@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -19,17 +20,18 @@ var WinSize tea.WindowSizeMsg
 
 // Color definitions
 var (
-	SubtleColor    = lipgloss.Color("250") // Background color, always 250
-	HighlightColor = lipgloss.Color("197") // Single highlight color used for both text and background
-	LightTextColor = lipgloss.Color("15")  // White text for light themes
-	DarkTextColor  = lipgloss.Color("238") // Dark text for dark themes
+	SubtleColor         = lipgloss.Color("250") // Background color, always 250
+	HighlightColor      = lipgloss.Color("197") // Single highlight color used for both text and background
+	LightTextColor      = lipgloss.Color("250") // White text for light themes
+	LightTextColorMuted = lipgloss.Color("245") // White text for light themes
+	DarkTextColor       = lipgloss.Color("238") // Dark text for dark themes
 
 	// Styles
 	HelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render
 
 	DocStyle = lipgloss.NewStyle().Width(BodyWidth()).Height(BodyHeight())
 
-	PadBodyContent = lipgloss.NewStyle().Padding(2, 0)
+	PadBodyContent = lipgloss.NewStyle().Width(BodyWidth()).Padding(2, 0)
 
 	StatusBarStyle = lipgloss.NewStyle().
 			Foreground(DarkTextColor).
@@ -54,18 +56,6 @@ var (
 )
 
 // Layout and rendering functions
-func ListStyle() list.Styles {
-	listStyle := list.DefaultStyles()
-	listStyle.Title = listStyle.Title.Background(HighlightColor).MarginTop(1)
-	return listStyle
-}
-
-func CustomDelegate() list.DefaultDelegate {
-	d := list.NewDefaultDelegate()
-	d.Styles.SelectedTitle = d.Styles.SelectedTitle.Foreground(HighlightColor).BorderLeftForeground(HighlightColor)
-	d.Styles.SelectedDesc = d.Styles.SelectedDesc.Foreground(HighlightColor).BorderLeftForeground(HighlightColor)
-	return d
-}
 
 // Layout and rendering functions
 func BodyHeight() int {
@@ -175,4 +165,58 @@ func Layout(location, helpstring, children string) string {
 func Card(content, background string, width, height int) string {
 	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, content, lipgloss.WithWhitespaceChars(background), lipgloss.WithWhitespaceForeground(lipgloss.Color("235")))
 
+}
+
+// bubbles and huh overrides
+
+func ListStyle() list.Styles {
+	listStyle := list.DefaultStyles()
+	listStyle.Title = listStyle.Title.Background(HighlightColor).MarginTop(1)
+	return listStyle
+}
+
+func HuhBsTheme() *huh.Theme {
+	t := huh.ThemeBase()
+
+	t.Focused.Base = t.Focused.Base.BorderForeground(lipgloss.Color(HighlightColor))
+	t.Focused.Title = t.Focused.Title.Foreground(lipgloss.Color(HighlightColor)).Bold(true)
+	t.Focused.NoteTitle = t.Focused.NoteTitle.Foreground(lipgloss.Color(HighlightColor))
+	t.Focused.Directory = t.Focused.Directory.Foreground(lipgloss.Color(HighlightColor))
+	t.Focused.Description = t.Focused.Description.Foreground(lipgloss.Color(LightTextColorMuted))
+	t.Focused.ErrorIndicator = t.Focused.ErrorIndicator.Foreground(lipgloss.Color("9"))
+	t.Focused.ErrorMessage = t.Focused.ErrorMessage.Foreground(lipgloss.Color("9"))
+	t.Focused.SelectSelector = t.Focused.SelectSelector.Foreground(lipgloss.Color(HighlightColor))
+	t.Focused.NextIndicator = t.Focused.NextIndicator.Foreground(lipgloss.Color("3"))
+	t.Focused.PrevIndicator = t.Focused.PrevIndicator.Foreground(lipgloss.Color("3"))
+	t.Focused.Option = t.Focused.Option.Foreground(lipgloss.Color(HighlightColor))
+	t.Focused.MultiSelectSelector = t.Focused.MultiSelectSelector.Foreground(lipgloss.Color("3"))
+	t.Focused.SelectedOption = t.Focused.SelectedOption.Foreground(lipgloss.Color(HighlightColor))
+	t.Focused.SelectedPrefix = t.Focused.SelectedPrefix.Foreground(lipgloss.Color(HighlightColor))
+	t.Focused.UnselectedOption = t.Focused.UnselectedOption.Foreground(lipgloss.Color("7"))
+	t.Focused.FocusedButton = t.Focused.FocusedButton.Foreground(lipgloss.Color("7")).Background(lipgloss.Color(HighlightColor))
+	t.Focused.BlurredButton = t.Focused.BlurredButton.Foreground(lipgloss.Color("7")).Background(lipgloss.Color("8"))
+
+	t.Focused.TextInput.Cursor.Foreground(lipgloss.Color(HighlightColor))
+	t.Focused.TextInput.Placeholder.Foreground(lipgloss.Color("8"))
+	t.Focused.TextInput.Prompt.Foreground(lipgloss.Color("3"))
+
+	t.Blurred = t.Focused
+	t.Blurred.Base = t.Blurred.Base.BorderStyle(lipgloss.HiddenBorder())
+	t.Blurred.NoteTitle = t.Blurred.NoteTitle.Foreground(lipgloss.Color(LightTextColor))
+	t.Blurred.Title = t.Blurred.NoteTitle.Foreground(lipgloss.Color(LightTextColor))
+
+	t.Blurred.TextInput.Prompt = t.Blurred.TextInput.Prompt.Foreground(lipgloss.Color("8"))
+	t.Blurred.TextInput.Text = t.Blurred.TextInput.Text.Foreground(lipgloss.Color(LightTextColor))
+
+	t.Blurred.NextIndicator = lipgloss.NewStyle()
+	t.Blurred.PrevIndicator = lipgloss.NewStyle()
+
+	return t
+}
+
+func CustomDelegate() list.DefaultDelegate {
+	d := list.NewDefaultDelegate()
+	d.Styles.SelectedTitle = d.Styles.SelectedTitle.Foreground(HighlightColor).BorderLeftForeground(HighlightColor)
+	d.Styles.SelectedDesc = d.Styles.SelectedDesc.Foreground(HighlightColor).BorderLeftForeground(HighlightColor)
+	return d
 }

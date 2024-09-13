@@ -17,11 +17,13 @@ const (
 )
 
 type ProjectModel struct {
-	Err     error
-	project helpers.Project
-	Menu    list.Model
-	Loading bool
-	Spinner spinner.Model
+	Err          error
+	project      helpers.Project
+	shortGitData string
+	Menu         list.Model
+	Loading      bool
+	dataLoading  bool
+	Spinner      spinner.Model
 }
 
 func (m *ProjectModel) inti() {}
@@ -36,9 +38,10 @@ func MakeProjectModel() ProjectModel {
 	}
 
 	m := ProjectModel{
-		Spinner: s,
-		Loading: true,
-		Menu:    list.New(menuItems, constants.CustomDelegate(), constants.BodyHalfWidth(), constants.BodyHeight()),
+		Spinner:     s,
+		Loading:     true,
+		dataLoading: true,
+		Menu:        list.New(menuItems, constants.CustomDelegate(), constants.BodyHalfWidth(), constants.BodyHeight()),
 	}
 
 	m.Menu.Styles = constants.ListStyle()
@@ -58,7 +61,7 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
+		case "ctrl+c", "esc", "q":
 			return GoHome()
 		}
 		switch {
@@ -76,6 +79,11 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case commands.ProjectFoundMsg:
 		m.Loading = false
 		m.project = msg.Project
+		return m, commands.FetchProjectData(m.project.UUID)
+
+	case commands.ProjectViewData:
+		m.shortGitData = msg.GitLog
+		m.dataLoading = false
 		return m, nil
 
 	case spinner.TickMsg:
@@ -103,6 +111,13 @@ func (m ProjectModel) View() string {
 		return constants.Layout("Server Info", "q: Return home", constants.PadBodyContent.Render("Error: "+m.Err.Error()+"\n"))
 	}
 
+	crd := ""
+	if m.dataLoading {
+		crd = m.Spinner.View() + " Loading..."
+	} else {
+		crd = "UUID:\n " + m.project.UUID + " \n\nActive git commit:\n" + m.shortGitData
+	}
+
 	m.Menu.SetSize(constants.BodyHalfWidth(), constants.BodyHeight())
 	return constants.Layout(
 		"Server Info", "q: Return home",
@@ -112,7 +127,7 @@ func (m ProjectModel) View() string {
 			constants.HalfAndHalfComposition(
 				m.Menu.View(),
 				constants.Card(
-					m.project.UUID,
+					crd,
 					`.`,
 					constants.BodyHalfWidth(),
 					constants.BodyHeight(),
