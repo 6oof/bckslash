@@ -14,6 +14,8 @@ import (
 
 const (
 	deleteProject navigate = iota
+	viewCompose
+	viewDeployScript
 	editEnv
 )
 
@@ -35,6 +37,8 @@ func MakeProjectModel() ProjectModel {
 	s.Spinner = spinner.Dot
 
 	menuItems := []list.Item{
+		item{title: "Viev compose", desc: "View the bckslash-compose.yaml file", navigation: viewCompose},
+		item{title: "Viev deploy script", desc: "View the bckslash-deploy.sh file", navigation: viewDeployScript},
 		item{title: "Enviroment", desc: "Edit .env file", navigation: editEnv},
 		item{title: "Delete a project", desc: "You'll be asked to confirm", navigation: deleteProject},
 	}
@@ -75,6 +79,10 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return pdm, nil
 			case editEnv:
 				return MakeProjectEnvModel(m.project.UUID).Update(commands.ExecStartMsg{})
+			case viewCompose:
+				return MakeProjectBcksComposeModel(m.project.UUID).Update(commands.ExecStartMsg{})
+			case viewDeployScript:
+				return MakeProjectBcksDelpoyModel(m.project.UUID).Update(commands.ExecStartMsg{})
 			}
 		}
 	case tea.WindowSizeMsg:

@@ -1,9 +1,11 @@
 package commands
 
 import (
+	"errors"
 	"lg/helpers"
 	"os"
 	"os/exec"
+	"path"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -83,6 +85,36 @@ func OpenHelpMd() tea.Cmd {
 		// Read the content of the HELP.md file
 		content, err := os.ReadFile("mds/HELP.md")
 		if err != nil {
+			return ProgramErrMsg{Err: err}
+		}
+		return ExecFinishedMsg{Err: nil, Content: string(content)}
+	}
+}
+
+func OpenProjectBcksCompose(uuid string) tea.Cmd {
+	return func() tea.Msg {
+		// Read the content of the HELP.md file
+		content, err := os.ReadFile(path.Join("projects", uuid, "bckslash-compose.yaml"))
+		if err != nil {
+
+			if errors.Is(err, os.ErrNotExist) {
+				return ProgramErrMsg{Err: errors.New("Bckslash compose file not found, to run the project please follow the instructins in home>help")}
+			}
+			return ProgramErrMsg{Err: err}
+		}
+		return ExecFinishedMsg{Err: nil, Content: string(content)}
+	}
+}
+
+func OpenProjectBcksDeployScript(uuid string) tea.Cmd {
+	return func() tea.Msg {
+		// Read the content of the HELP.md file
+		content, err := os.ReadFile(path.Join("projects", uuid, "bckslash-deploy.sh"))
+		if err != nil {
+
+			if errors.Is(err, os.ErrNotExist) {
+				return ProgramErrMsg{Err: errors.New("bckslash-deploy.sh file not found!\nThis might not be a problem if the only thing you're looking to do when deploying is starting the containers.")}
+			}
 			return ProgramErrMsg{Err: err}
 		}
 		return ExecFinishedMsg{Err: nil, Content: string(content)}
