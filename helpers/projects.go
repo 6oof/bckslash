@@ -10,13 +10,10 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"sync"
 
+	"github.com/boltdb/bolt"
 	"github.com/lithammer/shortuuid/v4"
 )
-
-// Mutex to ensure thread-safe access to projects
-var projectMutex sync.Mutex
 
 type Project struct {
 	UUID       string `json:"uuid"`
@@ -26,126 +23,54 @@ type Project struct {
 	Type       string `json:"type"`
 }
 
-func makeProjectsStore() error {
-	projects := []Project{}
-
-	// Marshal the Project slice into JSON with indentation
-	bytes, err := json.MarshalIndent(projects, "", "  ")
-	if err != nil {
-		return fmt.Errorf("unable to marshal projects: %w", err)
-	}
-
-	// Write the JSON content back to the file
-	err = os.WriteFile("bckslash_projects.json", bytes, 0644)
-	if err != nil {
-		return fmt.Errorf("unable to write projects file: %w", err)
-	}
-
-	return nil
-}
-
 // GetProjects reads the JSON file and unmarshals it into a slice of Project structs
 func GetProjects() ([]Project, error) {
-
-	// Open the projects file
-	file, err := os.Open("bckslash_projects.json")
-	if err != nil {
-		if os.IsNotExist(err) {
-			err := makeProjectsStore()
-			// Return an empty slice if the file doesn't exist yet
-			return []Project{}, err
-		}
-		return nil, fmt.Errorf("unable to open projects file: %w", err)
-	}
-	defer file.Close()
-
-	// Read the file content
-	bytes, err := io.ReadAll(file)
-	if err != nil {
-		return nil, fmt.Errorf("unable to read projects file: %w", err)
-	}
-
-	// Unmarshal the JSON into a slice of Project structs
 	var projects []Project
-	err = json.Unmarshal(bytes, &projects)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse projects: %w", err)
-	}
 
-	return projects, nil
+	err := BcksDb().View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("projects"))
+		if b == nil {
+			return fmt.Errorf("projects bucket not found")
+		}
+
+		c := b.Cursor()
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			var curp Project
+			err := json.Unmarshal(v, &curp)
+			if err != nil {
+				return err
+			}
+
+			// Append the project to the slice correctly
+			projects = append(projects, curp)
+		}
+		return nil
+	})
+
+	// Return the result and any potential error
+	return projects, err
 }
 
 func GetProject(uuid string) (Project, error) {
-	ep := Project{}
+	var project Project
 
-	file, err := os.Open("bckslash_projects.json")
-	if err != nil {
-		if os.IsNotExist(err) {
-			err := makeProjectsStore()
-			// Return an empty slice if the file doesn't exist yet
-			return ep, err
+	err := BcksDb().View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("projects"))
+		if b == nil {
+			return errors.New("projects bucket not found")
 		}
 
-		return ep, fmt.Errorf("unable to open projects file: %w", err)
-	}
-	defer file.Close()
-
-	// Read the file content
-	bytes, err := io.ReadAll(file)
-	if err != nil {
-		return ep, fmt.Errorf("unable to read projects file: %w", err)
-	}
-
-	// Unmarshal the JSON into a slice of Project structs
-	var projects []Project
-	err = json.Unmarshal(bytes, &projects)
-	if err != nil {
-		return ep, fmt.Errorf("unable to parse projects: %w", err)
-	}
-
-	for _, project := range projects {
-		if project.UUID == uuid {
-			return project, nil
+		p := b.Get([]byte(uuid))
+		if p == nil {
+			return errors.New("project with selected id not found")
 		}
-	}
 
-	return ep, errors.New("Project with selected id not found")
-
-}
-
-// SaveProjects marshals the slice of Project structs and writes it to the JSON file
-func SaveProjects(projects []Project) error {
-	// Lock the mutex to ensure thread-safe access
-	projectMutex.Lock()
-	defer projectMutex.Unlock()
-
-	// Marshal the Project slice into JSON with indentation
-	bytes, err := json.MarshalIndent(projects, "", "  ")
-	if err != nil {
-		return fmt.Errorf("unable to marshal projects: %w", err)
-	}
-
-	// Write the JSON content back to the file
-	err = os.WriteFile("bckslash_projects.json", bytes, 0644)
-	if err != nil {
-		return fmt.Errorf("unable to write projects file: %w", err)
-	}
-
-	return nil
-}
-
-// AddProject creates a new project and appends it to the projects list
-func AddProject(pro Project) error {
-	// Get the current list of projects
-	ap, err := GetProjects()
-	if err != nil {
+		// Pass project by reference
+		err := json.Unmarshal(p, &project)
 		return err
-	}
+	})
 
-	ap = append(ap, pro)
-
-	// Save the updated projects list
-	return SaveProjects(ap)
+	return project, err
 }
 
 // AddProjectFromCommand clones the repository and adds the project
@@ -157,6 +82,18 @@ func AddProjectFromCommand(title, projectType, repo, branch string) error {
 		Branch:     branch,
 		Type:       projectType,
 	}
+
+	if err := BcksDb().View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("projects"))
+		ip := b.Get([]byte(pro.UUID))
+		if ip != nil {
+			return errors.New("UUID collision, don't worry pelase re-try")
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+
 	// Define the path for the new project folder
 	projectDir := filepath.Join("projects", pro.UUID)
 
@@ -174,68 +111,75 @@ func AddProjectFromCommand(title, projectType, repo, branch string) error {
 
 	_ = resolveEnvOnCreate(pro.UUID)
 
+	if err := BcksDb().Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("projects"))
+
+		pj, err := json.Marshal(pro)
+		if err != nil {
+			return err
+		}
+
+		err = b.Put([]byte(pro.UUID), pj)
+		if err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+
 	// If cloning succeeded, proceed with adding the project
-	return AddProject(pro)
+	return nil
 }
 
 func resolveEnvOnCreate(uuid string) error {
 	// solve .env
 	// Open the projects file
-	file, err := os.Open(path.Join("projects", uuid, ".env"))
-	defer file.Close()
+	envPath := path.Join("projects", uuid, ".env")
+	file, err := os.Open(envPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-
 			fileExample, err := os.Open(path.Join("projects", uuid, ".env.example"))
-			defer file.Close()
 			if err != nil {
-				return err
+				return fmt.Errorf("unable to open .env.example: %w", err)
 			}
+			defer fileExample.Close()
+
 			bytes, err := io.ReadAll(fileExample)
 			if err != nil {
-
-				return fmt.Errorf("unable to read projects file: %w", err)
+				return fmt.Errorf("unable to read .env.example: %w", err)
 			}
 
-			err = os.WriteFile(path.Join("projects", uuid, ".env"), bytes, 0664)
-
-			// Return an empty slice if the file doesn't exist yet
-			return err
+			err = os.WriteFile(envPath, bytes, 0664)
+			if err != nil {
+				return fmt.Errorf("unable to write .env file: %w", err)
+			}
+			return nil
 		}
-		return fmt.Errorf("unable to open projects file: %w", err)
+		return fmt.Errorf("unable to open .env file: %w", err)
 	}
+	defer file.Close()
 
 	return nil
 }
 
 // RemoveProject removes a project from the list by its UUID
-func RemoveProject(projectUUID string) error {
+func RemoveProject(uuid string) error {
 
-	// Get the current list of projects
-	projects, err := GetProjects()
+	p, err := GetProject(uuid)
+
 	if err != nil {
 		return err
 	}
 
-	// Filter out the project with the given UUID
-	var newProjects []Project
-	found := false
-	for _, project := range projects {
-		if project.UUID != projectUUID {
-			newProjects = append(newProjects, project)
-		} else {
-			found = true
-		}
-	}
-
 	// Check if the project was found
-	if !found {
-		return fmt.Errorf("project with UUID %s not found", projectUUID)
+	if p.UUID == "" {
+		return fmt.Errorf("project with UUID %s not found", uuid)
 	}
 
 	// Define the path for the project folder
-	projectDir := filepath.Join("projects", projectUUID)
-	dockerComposeFile := filepath.Join(projectDir, "docker-compose-bckslash.yml")
+	projectDir := filepath.Join("projects", uuid)
+	dockerComposeFile := filepath.Join(projectDir, "bckslash-compose.yml")
 
 	// Step 0: Check if Docker Compose is running
 	// Check if the docker-compose.yml file exists
@@ -265,9 +209,14 @@ func RemoveProject(projectUUID string) error {
 		return fmt.Errorf("failed to remove project folder %s: %v", projectDir, err)
 	}
 
-	// Save the updated projects list
-	if err := SaveProjects(newProjects); err != nil {
-		return fmt.Errorf("failed to save updated project list: %v", err)
+	if err = BcksDb().Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("projects"))
+		if err := b.Delete([]byte(uuid)); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		return err
 	}
 
 	return nil
