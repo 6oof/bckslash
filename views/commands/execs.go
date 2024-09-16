@@ -3,11 +3,14 @@ package commands
 import (
 	"errors"
 	"lg/helpers"
+	"lg/views/constants"
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type ExecFinishedMsg struct {
@@ -132,6 +135,51 @@ func ShowNeofetch() tea.Cmd {
 			return ExecFinishedMsg{Err: err, Content: ""}
 		}
 		return ExecFinishedMsg{Err: nil, Content: string(out)}
+	}
+}
+
+func ShowProjectStatus(uuid string) tea.Cmd {
+	return func() tea.Msg {
+		projectPath := path.Join("projects", uuid)
+
+		// Define styles for titles and content
+		titleStyle := lipgloss.NewStyle().Bold(true).Underline(true).Foreground(constants.HighlightColor)
+		contentStyle := lipgloss.NewStyle().PaddingLeft(2)
+
+		// Execute docker-compose ps command
+		cDocker := exec.Command("docker-compose", "-f", "bckslash-compose.yaml", "ps") //nolint:gosec
+		cDocker.Dir = projectPath
+		dockerOut, dockerErr := cDocker.CombinedOutput() // Capture both stdout and stderr
+
+		// Execute git status command
+		cGit := exec.Command("git", "status")
+		cGit.Dir = projectPath
+		gitOut, gitErr := cGit.CombinedOutput() // Capture both stdout and stderr
+
+		// Combine the outputs and handle any errors
+		var combinedOut strings.Builder
+
+		// Docker Compose ps output or error
+
+		combinedOut.WriteString(titleStyle.Render("\nDocker Compose Status\n"))
+		combinedOut.WriteString("\n")
+		if dockerErr != nil {
+			combinedOut.WriteString(contentStyle.Render("Error running docker-compose ps:\n" + string(dockerOut) + "\n" + dockerErr.Error() + "\n"))
+		} else {
+			combinedOut.WriteString(contentStyle.Render(string(dockerOut) + "\n"))
+		}
+
+		// Git status output or error
+		combinedOut.WriteString(titleStyle.Render("Git Status\n"))
+		combinedOut.WriteString("\n")
+		if gitErr != nil {
+			combinedOut.WriteString(contentStyle.Render("Error running git status:\n\n" + string(gitOut) + "\n" + gitErr.Error() + "\n"))
+		} else {
+			combinedOut.WriteString(contentStyle.Render(string(gitOut) + "\n\n"))
+		}
+
+		// Return the combined output as a message
+		return ExecFinishedMsg{Err: nil, Content: combinedOut.String()}
 	}
 }
 
