@@ -21,6 +21,10 @@ func OpenDb() error {
 		return err
 	}
 
+	if err := ensureProjects(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -37,6 +41,19 @@ func ensureSettings() error {
 				return err
 			}
 		}
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		return nil
+	})
+
+	return nil
+}
+
+func ensureProjects() error {
+	database.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte("projects"))
+
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
