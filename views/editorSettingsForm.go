@@ -1,7 +1,6 @@
 package views
 
 import (
-	"fmt"
 	"lg/helpers"
 	"lg/views/constants"
 
@@ -17,10 +16,7 @@ type EditorFormModel struct {
 
 func MakeEditorSelectionModel() EditorFormModel {
 	// Load settings
-	settings, err := helpers.GetSettings()
-	if err != nil {
-		return EditorFormModel{Err: fmt.Errorf("%w", err)}
-	}
+	editorCommand := helpers.GetEditorSetting()
 
 	fm := EditorFormModel{
 		confirm: false,
@@ -34,7 +30,7 @@ func MakeEditorSelectionModel() EditorFormModel {
 				Key("editor").
 				Description("Some action within bckslash will require you to edit docker-compose, json, and other files. This sets the editor you use for these actions.").
 				Options(huh.NewOptions("vim", "nano", "micro")...). // Options for the editor
-				Title("Choose your prefered editor:").Value(&settings.EditorCommand),
+				Title("Choose your prefered editor:").Value(&editorCommand),
 		),
 
 		huh.NewGroup(
@@ -81,17 +77,11 @@ func (m EditorFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Save the selected editor to settings
 			selectedEditor := m.form.GetString("editor")
 
-			// Load settings, modify, and save
-			settings, err := helpers.GetSettings()
+			err := helpers.SetEditorSetting(selectedEditor)
+
 			if err != nil {
 				m.Err = err
-				return m, nil
-			}
-			settings.EditorCommand = selectedEditor
 
-			// Save updated settings
-			if err := helpers.SaveSettings(settings); err != nil {
-				m.Err = err
 				return m, nil
 			}
 

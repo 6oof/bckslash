@@ -51,14 +51,14 @@ func FetchProject(uuid string) tea.Cmd {
 }
 
 func OpenEditor(filepath string) tea.Cmd {
-	settings, err := helpers.GetSettings()
-	if err != nil {
+	editorCommand := helpers.GetEditorSetting()
+	if editorCommand == "" {
 		return func() tea.Msg {
-			return ExecFinishedMsg{Err: err, Content: ""}
+			return ExecFinishedMsg{Err: errors.New("could not find editor command"), Content: ""}
 		}
 	}
 
-	c := exec.Command(settings.EditorCommand, filepath) //nolint:gosec
+	c := exec.Command(editorCommand, filepath) //nolint:gosec
 	return tea.ExecProcess(c, func(err error) tea.Msg {
 		return ExecFinishedMsg{Err: err, Content: ""}
 	})
