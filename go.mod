@@ -3,6 +3,7 @@ module lg
 go 1.23.0
 
 require (
+	github.com/boltdb/bolt v1.3.1
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.1.0
 	github.com/charmbracelet/glamour v0.8.0
