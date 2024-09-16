@@ -163,7 +163,7 @@ func Layout(location, helpstring, children string) string {
 }
 
 func Card(content, background string, width, height int) string {
-	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, content, lipgloss.WithWhitespaceChars(background), lipgloss.WithWhitespaceForeground(lipgloss.Color("235")))
+	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, content, lipgloss.WithWhitespaceChars(background), lipgloss.WithWhitespaceForeground(lipgloss.Color("240")))
 
 }
 
