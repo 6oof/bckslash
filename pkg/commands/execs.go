@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"lg/helpers"
-	"lg/views/constants"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
+
+	"github.com/6oof/bckslash/pkg/constants"
+	"github.com/6oof/bckslash/pkg/helpers"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"

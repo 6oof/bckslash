@@ -2,10 +2,11 @@ package tui
 
 import (
 	"fmt"
-	"lg/helpers"
-	"lg/views"
 	"log"
 	"os"
+
+	"github.com/6oof/bckslash/pkg/helpers"
+	"github.com/6oof/bckslash/pkg/views"
 
 	tea "github.com/charmbracelet/bubbletea"
 )

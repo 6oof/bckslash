@@ -1,9 +1,10 @@
 package views
 
 import (
-	"lg/views/commands"
-	"lg/views/constants"
 	"path"
+
+	"github.com/6oof/bckslash/pkg/commands"
+	"github.com/6oof/bckslash/pkg/constants"
 
 	tea "github.com/charmbracelet/bubbletea"
 )

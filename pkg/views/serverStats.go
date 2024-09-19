@@ -1,25 +1,25 @@
 package views
 
 import (
-	"lg/views/commands"
-	"lg/views/constants"
+	"github.com/6oof/bckslash/pkg/commands"
+	"github.com/6oof/bckslash/pkg/constants"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type ServerSettingsModel struct {
+type ServerStatsModel struct {
 	Err error
 }
 
-func MakeServerSettingsModel() ServerSettingsModel {
-	return ServerSettingsModel{Err: nil}
+func MakeServerStatsModel() ServerStatsModel {
+	return ServerStatsModel{Err: nil}
 }
 
-func (m ServerSettingsModel) Init() tea.Cmd {
+func (m ServerStatsModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m ServerSettingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m ServerStatsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -29,7 +29,7 @@ func (m ServerSettingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		constants.WinSize = msg
 	case commands.ExecStartMsg:
-		return m, commands.OpenEditor("bckslash_settings.json")
+		return m, commands.OpenBTM()
 	case commands.ExecFinishedMsg:
 		if msg.Err != nil {
 			m.Err = msg.Err
@@ -41,9 +41,9 @@ func (m ServerSettingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m ServerSettingsModel) View() string {
+func (m ServerStatsModel) View() string {
 	if m.Err != nil {
-		return constants.Layout("Server Info", "q: Return home", "Error: "+m.Err.Error()+"\n")
+		return "Error: " + m.Err.Error() + "\n"
 	}
 	return "Press 'q' to quit."
 }
