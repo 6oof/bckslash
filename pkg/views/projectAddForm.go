@@ -2,9 +2,10 @@ package views
 
 import (
 	"errors"
-	"lg/views/commands"
-	"lg/views/constants"
 	"regexp"
+
+	"github.com/6oof/bckslash/pkg/commands"
+	"github.com/6oof/bckslash/pkg/constants"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"

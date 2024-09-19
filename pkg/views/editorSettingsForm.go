@@ -1,8 +1,8 @@
 package views
 
 import (
-	"lg/helpers"
-	"lg/views/constants"
+	"github.com/6oof/bckslash/pkg/constants"
+	"github.com/6oof/bckslash/pkg/helpers"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"

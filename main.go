@@ -1,6 +1,6 @@
 package main
 
-import "lg/tui"
+import "github.com/6oof/bckslash/cmd/tui"
 
 func main() {
 	tui.StartTea()

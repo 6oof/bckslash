@@ -1,23 +1,24 @@
 package views
 
 import (
-	"lg/views/commands"
-	"lg/views/constants"
+	"github.com/6oof/bckslash/pkg/commands"
+	"github.com/6oof/bckslash/pkg/constants"
 
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/glamour"
 )
 
-type ProjectStatusModel struct {
+type ProjectBcksDelpoyModel struct {
 	Err      error
 	Viewport viewport.Model
 	uuid     string
 	Content  string
 }
 
-func MakeProjectStatusModel(uuid string) ProjectStatusModel {
+func MakeProjectBcksDelpoyModel(uuid string) ProjectBcksDelpoyModel {
 	vp := viewport.New(constants.BodyWidth(), constants.BodyHeight())
-	return ProjectStatusModel{
+	return ProjectBcksDelpoyModel{
 		Err:      nil,
 		Viewport: vp,
 		Content:  "",
@@ -25,11 +26,11 @@ func MakeProjectStatusModel(uuid string) ProjectStatusModel {
 	}
 }
 
-func (m ProjectStatusModel) Init() tea.Cmd {
+func (m ProjectBcksDelpoyModel) Init() tea.Cmd {
 	return commands.OpenHelpMd()
 }
 
-func (m ProjectStatusModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m ProjectBcksDelpoyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -62,18 +63,30 @@ func (m ProjectStatusModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Err = msg.Err
 			return m, nil
 		}
-		m.Viewport.SetContent(msg.Content)
+		m.Content = m.renderMarkdown(msg.Content)
+		m.Viewport.SetContent(m.Content)
 		return m, nil
 	case commands.ExecStartMsg:
-		return m, commands.ShowProjectStatus(m.uuid)
+		return m, commands.OpenProjectBcksDeployScript(m.uuid)
 	}
 
 	return m, nil
 }
 
-func (m ProjectStatusModel) View() string {
+func (m ProjectBcksDelpoyModel) View() string {
 	if m.Err != nil {
 		return constants.Layout("Help", "q: Quit", "Error: "+m.Err.Error()+"\n")
 	}
 	return constants.Layout("Help", "↑/↓: Scroll • q: Quit", m.Viewport.View())
+}
+
+func (m ProjectBcksDelpoyModel) renderMarkdown(content string) string {
+	// Glamour rendering with a dark theme for markdown
+	cntnt := "```bash\n" + content + "```"
+
+	out, err := glamour.Render(cntnt, "tokyo-night")
+	if err != nil {
+		return "Error rendering markdown"
+	}
+	return out
 }

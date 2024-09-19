@@ -1,9 +1,9 @@
 package views
 
 import (
-	"lg/helpers"
-	"lg/views/commands"
-	"lg/views/constants"
+	"github.com/6oof/bckslash/pkg/commands"
+	"github.com/6oof/bckslash/pkg/constants"
+	"github.com/6oof/bckslash/pkg/helpers"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"

@@ -1,4 +1,4 @@
-module lg
+module github.com/6oof/bckslash
 
 go 1.23.0
 
