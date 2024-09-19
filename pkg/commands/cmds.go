@@ -146,7 +146,8 @@ func ShowProjectStatus(uuid string) tea.Cmd {
 
 		// Docker Compose ps output or error
 
-		combinedOut.WriteString(titleStyle.Render("\nDocker Compose Status\n"))
+		combinedOut.WriteString(titleStyle.Render("Docker Compose Status"))
+		combinedOut.WriteString("\n")
 		combinedOut.WriteString("\n")
 		if dockerErr != nil {
 			combinedOut.WriteString(contentStyle.Render("Error running docker-compose ps:\n" + string(dockerOut) + "\n" + dockerErr.Error() + "\n"))
@@ -160,7 +161,7 @@ func ShowProjectStatus(uuid string) tea.Cmd {
 		if gitErr != nil {
 			combinedOut.WriteString(contentStyle.Render("Error running git status:\n\n" + string(gitOut) + "\n" + gitErr.Error() + "\n"))
 		} else {
-			combinedOut.WriteString(contentStyle.Render(string(gitOut) + "\n\n"))
+			combinedOut.WriteString(contentStyle.Render(string(gitOut)))
 		}
 
 		// Return the combined output as a message

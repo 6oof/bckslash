@@ -9,24 +9,19 @@ import (
 )
 
 type ProjectStatusModel struct {
-	Err      error
 	Viewport viewport.Model
+	content  string
 	uuid     string
-	Content  string
 }
 
 func MakeProjectStatusModel(uuid string) ProjectStatusModel {
-	vp := viewport.New(constants.BodyWidth(), constants.BodyHeight())
 	return ProjectStatusModel{
-		Err:      nil,
-		Viewport: vp,
-		Content:  "",
-		uuid:     uuid,
+		uuid: uuid,
 	}
 }
 
 func (m ProjectStatusModel) Init() tea.Cmd {
-	return commands.OpenHelpMd()
+	return nil
 }
 
 func (m ProjectStatusModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -35,24 +30,12 @@ func (m ProjectStatusModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return MakeProjectModel(), commands.FetchProject(m.uuid)
-		case "up", "k":
-			m.Viewport.LineUp(1) // Move up
-			return m, nil
-		case "down", "j":
-			m.Viewport.LineDown(1) // Move down
-			return m, nil
-		case "pageup":
-			m.Viewport.LineUp(m.Viewport.Height / 2) // Move up by half the viewport height
-			return m, nil
-		case "pagedown":
-			m.Viewport.LineDown(m.Viewport.Height / 2) // Move down by half the viewport height
-			return m, nil
 		}
 	case tea.WindowSizeMsg:
 		constants.WinSize = msg
 		m.Viewport.Width = constants.BodyWidth()
 		m.Viewport.Height = constants.BodyHeight()
-		m.Viewport.SetContent(m.Content) // Update content on resize
+		return m, nil
 
 	case commands.ProgramErrMsg:
 		return GoError(msg.Err, func() (tea.Model, tea.Cmd) {
@@ -60,19 +43,27 @@ func (m ProjectStatusModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		})
 
 	case commands.ExecFinishedMsg:
-		m.Viewport.SetContent(msg.Content)
-		return m, nil
+		m.content = constants.ViewportContent(msg.Content)
+		m.Viewport = viewport.New(constants.BodyWidth(), constants.BodyHeight())
+		m.Viewport.SetContent(m.content) // Update viewport with the new command output
 
 	case commands.ExecStartMsg:
 		return m, commands.ShowProjectStatus(m.uuid)
 	}
 
-	return m, nil
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+
+	m.Viewport, cmd = m.Viewport.Update(msg)
+	cmds = append(cmds, cmd)
+
+	return m, tea.Batch(cmds...)
+
 }
 
 func (m ProjectStatusModel) View() string {
-	if m.Err != nil {
-		return constants.Layout("Help", "q: Quit", "Error: "+m.Err.Error()+"\n")
-	}
+
 	return constants.Layout("Help", "↑/↓: Scroll • q: Quit", m.Viewport.View())
 }

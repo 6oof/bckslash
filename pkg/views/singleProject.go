@@ -40,8 +40,8 @@ func MakeProjectModel() ProjectModel {
 	menuItems := []list.Item{
 		item{title: "Deploy", desc: "Trigger deployment", navigation: deploy},
 		item{title: "Project status", desc: "View docker-compose ps and git status out", navigation: viewStatus},
-		item{title: "Viev compose", desc: "View the bckslash-compose.yaml file", navigation: viewCompose},
-		item{title: "Viev deploy script", desc: "View the bckslash-deploy.sh file", navigation: viewDeployScript},
+		item{title: "View compose", desc: "View the bckslash-compose.yaml file", navigation: viewCompose},
+		item{title: "View deploy script", desc: "View the bckslash-deploy.sh file", navigation: viewDeployScript},
 		item{title: "Enviroment", desc: "Edit .env file", navigation: editEnv},
 		item{title: "Delete a project", desc: "You'll be asked to confirm", navigation: deleteProject},
 	}

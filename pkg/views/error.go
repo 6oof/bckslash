@@ -15,12 +15,7 @@ type ErrorModel struct {
 
 func makeErrorModel(err error, returnMc errReturnModel) ErrorModel {
 	vp := viewport.New(constants.BodyWidth(), constants.BodyHeight())
-
-	vp.Width = constants.BodyWidth()
-	vp.Height = constants.BodyHeight()
-	vp.Style = vp.Style.Padding(2, 0)
-
-	vp.SetContent(err.Error())
+	vp.SetContent(constants.ViewportContent("Error: " + err.Error()))
 
 	return ErrorModel{
 		ReturnMc: returnMc,
@@ -43,18 +38,6 @@ func (m ErrorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m.ReturnMc()
-		case "up", "k":
-			m.Viewport.LineUp(1) // Move up
-			return m, nil
-		case "down", "j":
-			m.Viewport.LineDown(1) // Move down
-			return m, nil
-		case "pageup":
-			m.Viewport.LineUp(m.Viewport.Height / 2) // Move up by half the viewport height
-			return m, nil
-		case "pagedown":
-			m.Viewport.LineDown(m.Viewport.Height / 2) // Move down by half the viewport height
-			return m, nil
 		}
 	case tea.WindowSizeMsg:
 		constants.WinSize = msg
@@ -63,7 +46,15 @@ func (m ErrorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	return m, nil
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+
+	m.Viewport, cmd = m.Viewport.Update(msg)
+	cmds = append(cmds, cmd)
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m ErrorModel) View() string {
