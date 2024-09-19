@@ -10,7 +10,6 @@ import (
 )
 
 type ServerInfoModel struct {
-	Err     error
 	Content string
 	Loading bool
 	Spinner spinner.Model
@@ -72,10 +71,6 @@ func (m ServerInfoModel) View() string {
 	if m.Loading {
 		// Show the spinner while loading
 		return constants.Layout("Server Info", "q: Return home", constants.PadBodyContent.Render(m.Spinner.View()+" Loading..."))
-	}
-
-	if m.Err != nil {
-		return constants.Layout("Server Info", "q: Return home", constants.PadBodyContent.Render("Error: "+m.Err.Error()+"\n"))
 	}
 
 	return constants.Layout("Server Info", "q: Return home", lipgloss.PlaceHorizontal(constants.BodyWidth(), lipgloss.Left, constants.PadBodyContent.Render(m.Content)))

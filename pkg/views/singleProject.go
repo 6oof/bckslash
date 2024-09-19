@@ -22,7 +22,6 @@ const (
 )
 
 type ProjectModel struct {
-	Err          error
 	project      helpers.Project
 	shortGitData string
 	deployLog    string
@@ -136,10 +135,6 @@ func (m ProjectModel) View() string {
 	if m.Loading {
 		// Show the spinner while loading
 		return constants.Layout("Server Info", "q: Return home", constants.PadBodyContent.Render(m.Spinner.View()+" Loading..."))
-	}
-
-	if m.Err != nil {
-		return constants.Layout("Server Info", "q: Return home", constants.PadBodyContent.Render("Error: "+m.Err.Error()+"\n"))
 	}
 
 	crd := ""

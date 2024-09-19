@@ -8,11 +8,10 @@ import (
 )
 
 type ServerStatsModel struct {
-	Err error
 }
 
 func MakeServerStatsModel() ServerStatsModel {
-	return ServerStatsModel{Err: nil}
+	return ServerStatsModel{}
 }
 
 func (m ServerStatsModel) Init() tea.Cmd {
@@ -43,8 +42,5 @@ func (m ServerStatsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ServerStatsModel) View() string {
-	if m.Err != nil {
-		return "Error: " + m.Err.Error() + "\n"
-	}
 	return "Press 'q' to quit."
 }

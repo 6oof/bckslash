@@ -10,13 +10,11 @@ import (
 )
 
 type ProjectEnvModel struct {
-	Err  error
 	uuid string
 }
 
 func MakeProjectEnvModel(uuid string) ProjectEnvModel {
 	return ProjectEnvModel{
-		Err:  nil,
 		uuid: uuid,
 	}
 }
@@ -47,8 +45,5 @@ func (m ProjectEnvModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ProjectEnvModel) View() string {
-	if m.Err != nil {
-		return "Error: " + m.Err.Error() + "\n"
-	}
 	return "Press 'q' to quit."
 }
