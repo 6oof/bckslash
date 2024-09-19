@@ -36,12 +36,11 @@ func (m ProjectEnvModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		constants.WinSize = msg
 	case commands.ExecStartMsg:
 		return m, commands.OpenEditor(path.Join("projects", m.uuid, ".env"))
+	case commands.ProgramErrMsg:
+		return GoError(msg.Err, func() (tea.Model, tea.Cmd) {
+			return MakeProjectModel(), commands.FetchProject(m.uuid)
+		})
 	case commands.ExecFinishedMsg:
-		if msg.Err != nil {
-			m.Err = msg.Err
-			return m, nil
-		}
-
 		return MakeProjectModel(), commands.FetchProject(m.uuid)
 	}
 	return m, nil

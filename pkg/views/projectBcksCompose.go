@@ -27,7 +27,7 @@ func MakeProjectBcksComposeModel(uuid string) ProjectBcksComposeModel {
 }
 
 func (m ProjectBcksComposeModel) Init() tea.Cmd {
-	return commands.OpenHelpMd()
+	return nil
 }
 
 func (m ProjectBcksComposeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -56,13 +56,11 @@ func (m ProjectBcksComposeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Viewport.SetContent(m.Content) // Update content on resize
 
 	case commands.ProgramErrMsg:
-		m.Err = msg.Err
+		return GoError(msg.Err, func() (tea.Model, tea.Cmd) {
+			return MakeProjectModel(), commands.FetchProject(m.uuid)
+		})
 
 	case commands.ExecFinishedMsg:
-		if msg.Err != nil {
-			m.Err = msg.Err
-			return m, nil
-		}
 		m.Content = m.renderMarkdown(msg.Content)
 		m.Viewport.SetContent(m.Content)
 		return m, nil

@@ -101,7 +101,7 @@ func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		}
 	case commands.ProgramErrMsg:
-		panic(msg.Err)
+		return GoError(msg.Err, GoHome)
 
 	case tea.WindowSizeMsg:
 		constants.WinSize = msg

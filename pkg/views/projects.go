@@ -86,8 +86,8 @@ func (m projectsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case commands.ProgramErrMsg:
-		// setup an err view and handle arr errors with it
-		panic(msg.Err)
+		return GoError(msg.Err, GoHome)
+
 	case commands.ProjectListChangedMsg:
 		m.loading = true
 		m.mapProjects(msg.ProjectList)
