@@ -57,3 +57,7 @@ func Card(content, background string, width, height int) string {
 	return lipgloss.Place(width, height, lipgloss.Center, lipgloss.Center, content, lipgloss.WithWhitespaceChars(background), lipgloss.WithWhitespaceForeground(lipgloss.Color("240")))
 
 }
+
+func ViewportContent(content string) string {
+	return lipgloss.NewStyle().Margin(2, 0).Width(BodyWidth() - 1).Render(content)
+}

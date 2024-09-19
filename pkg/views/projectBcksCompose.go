@@ -18,6 +18,8 @@ type ProjectBcksComposeModel struct {
 
 func MakeProjectBcksComposeModel(uuid string) ProjectBcksComposeModel {
 	vp := viewport.New(constants.BodyWidth(), constants.BodyHeight())
+	vp.Style = vp.Style.Padding(2, 0)
+
 	return ProjectBcksComposeModel{
 		Err:      nil,
 		Viewport: vp,

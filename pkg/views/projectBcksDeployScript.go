@@ -10,7 +10,6 @@ import (
 )
 
 type ProjectBcksDelpoyModel struct {
-	Err      error
 	Viewport viewport.Model
 	uuid     string
 	Content  string
@@ -18,8 +17,9 @@ type ProjectBcksDelpoyModel struct {
 
 func MakeProjectBcksDelpoyModel(uuid string) ProjectBcksDelpoyModel {
 	vp := viewport.New(constants.BodyWidth(), constants.BodyHeight())
+	vp.Style = vp.Style.Padding(2, 0)
+
 	return ProjectBcksDelpoyModel{
-		Err:      nil,
 		Viewport: vp,
 		Content:  "",
 		uuid:     uuid,
@@ -73,9 +73,7 @@ func (m ProjectBcksDelpoyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ProjectBcksDelpoyModel) View() string {
-	if m.Err != nil {
-		return constants.Layout("Help", "q: Quit", "Error: "+m.Err.Error()+"\n")
-	}
+
 	return constants.Layout("Help", "↑/↓: Scroll • q: Quit", m.Viewport.View())
 }
 
