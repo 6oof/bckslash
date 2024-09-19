@@ -32,8 +32,6 @@ type ProjectModel struct {
 	Spinner      spinner.Model
 }
 
-func (m *ProjectModel) inti() {}
-
 func MakeProjectModel() ProjectModel {
 	// Initialize the spinner with a default style
 	s := spinner.New()
@@ -109,15 +107,12 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case commands.ExecFinishedMsg:
 		m.deployLog = msg.Content
-		m.Err = msg.Err
 		return m, nil
 
 	case commands.ProgramErrMsg:
-		m.Err = msg.Err
-		return m, nil
-
-	case commands.EmptyMsg:
-		return m, nil
+		return GoError(msg.Err, func() (tea.Model, tea.Cmd) {
+			return MakeProjectModel(), commands.FetchProject(m.project.UUID)
+		})
 
 	case spinner.TickMsg:
 		if m.Loading {

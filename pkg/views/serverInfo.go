@@ -46,12 +46,11 @@ func (m ServerInfoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Loading = true
 		return m, tea.Batch(m.Spinner.Tick, commands.ShowNeofetch())
 
+	case commands.ProgramErrMsg:
+		return GoError(msg.Err, GoHome)
+
 	case commands.ExecFinishedMsg:
 		m.Loading = false
-		if msg.Err != nil {
-			m.Err = msg.Err
-			return m, nil
-		}
 		if msg.Content != "" {
 			m.Content = msg.Content
 		}

@@ -32,20 +32,26 @@ func OpenEditor(filepath string) tea.Cmd {
 	editorCommand := helpers.GetEditorSetting()
 	if editorCommand == "" {
 		return func() tea.Msg {
-			return ExecFinishedMsg{Err: errors.New("could not find editor command"), Content: ""}
+			return ProgramErrMsg{Err: errors.New("could not find editor command")}
 		}
 	}
 
 	c := exec.Command(editorCommand, filepath) //nolint:gosec
 	return tea.ExecProcess(c, func(err error) tea.Msg {
-		return ExecFinishedMsg{Err: err, Content: ""}
+		if err != nil {
+			return ProgramErrMsg{Err: err}
+		}
+		return ExecFinishedMsg{}
 	})
 }
 
 func OpenBTM() tea.Cmd {
 	c := exec.Command("btm", "--theme", "nord") //nolint:gosec
 	return tea.ExecProcess(c, func(err error) tea.Msg {
-		return ExecFinishedMsg{Err: err, Content: ""}
+		if err != nil {
+			return ProgramErrMsg{Err: err}
+		}
+		return ExecFinishedMsg{}
 	})
 }
 
@@ -68,7 +74,7 @@ func OpenHelpMd() tea.Cmd {
 		if err != nil {
 			return ProgramErrMsg{Err: err}
 		}
-		return ExecFinishedMsg{Err: nil, Content: string(content)}
+		return ExecFinishedMsg{Content: string(content)}
 	}
 }
 
@@ -83,7 +89,7 @@ func OpenProjectBcksCompose(uuid string) tea.Cmd {
 			}
 			return ProgramErrMsg{Err: err}
 		}
-		return ExecFinishedMsg{Err: nil, Content: string(content)}
+		return ExecFinishedMsg{Content: string(content)}
 	}
 }
 
@@ -98,7 +104,7 @@ func OpenProjectBcksDeployScript(uuid string) tea.Cmd {
 			}
 			return ProgramErrMsg{Err: err}
 		}
-		return ExecFinishedMsg{Err: nil, Content: string(content)}
+		return ExecFinishedMsg{Content: string(content)}
 	}
 }
 
@@ -110,9 +116,10 @@ func ShowNeofetch() tea.Cmd {
 
 		// Return the result as a message when the command finishes
 		if err != nil {
-			return ExecFinishedMsg{Err: err, Content: ""}
+
+			return ProgramErrMsg{Err: err}
 		}
-		return ExecFinishedMsg{Err: nil, Content: string(out)}
+		return ExecFinishedMsg{Content: string(out)}
 	}
 }
 
@@ -157,7 +164,7 @@ func ShowProjectStatus(uuid string) tea.Cmd {
 		}
 
 		// Return the combined output as a message
-		return ExecFinishedMsg{Err: nil, Content: combinedOut.String()}
+		return ExecFinishedMsg{Content: combinedOut.String()}
 	}
 }
 
@@ -230,7 +237,7 @@ func TriggerDeploy(uuid string) tea.Cmd {
 			if err != nil {
 				// Handle both stderr content and the error
 				if stderrBuf.Len() > 0 {
-					return ExecFinishedMsg{Err: fmt.Errorf("error: %v, stderr: %s", err, stderrBuf.String())}
+					return ProgramErrMsg{Err: fmt.Errorf("error: %v, stderr: %s", err, stderrBuf.String())}
 				}
 			}
 
@@ -252,7 +259,7 @@ func TriggerDeploy(uuid string) tea.Cmd {
 			if err != nil {
 				// Handle both stderr content and the error
 				if stderrBuf.Len() > 0 {
-					return ExecFinishedMsg{Err: fmt.Errorf("error: %v, stderr: %s", err, stderrBuf.String())}
+					return ProgramErrMsg{Err: fmt.Errorf("error: %v, stderr: %s", err, stderrBuf.String())}
 				}
 			}
 			return ExecFinishedMsg{Content: stdoutBuf.String()}

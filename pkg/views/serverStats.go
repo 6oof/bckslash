@@ -28,15 +28,16 @@ func (m ServerStatsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.WindowSizeMsg:
 		constants.WinSize = msg
+
 	case commands.ExecStartMsg:
 		return m, commands.OpenBTM()
-	case commands.ExecFinishedMsg:
-		if msg.Err != nil {
-			m.Err = msg.Err
-			return m, nil
-		}
 
+	case commands.ProgramErrMsg:
+		return GoError(msg.Err, GoHome)
+
+	case commands.ExecFinishedMsg:
 		return GoHome()
+
 	}
 	return m, nil
 }
