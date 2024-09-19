@@ -12,16 +12,13 @@ import (
 type ProjectBcksDelpoyModel struct {
 	Viewport viewport.Model
 	uuid     string
-	Content  string
 }
 
 func MakeProjectBcksDelpoyModel(uuid string) ProjectBcksDelpoyModel {
 	vp := viewport.New(constants.BodyWidth(), constants.BodyHeight())
-	vp.Style = vp.Style.Padding(2, 0)
 
 	return ProjectBcksDelpoyModel{
 		Viewport: vp,
-		Content:  "",
 		uuid:     uuid,
 	}
 }
@@ -36,24 +33,12 @@ func (m ProjectBcksDelpoyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return MakeProjectModel(), commands.FetchProject(m.uuid)
-		case "up", "k":
-			m.Viewport.LineUp(1) // Move up
-			return m, nil
-		case "down", "j":
-			m.Viewport.LineDown(1) // Move down
-			return m, nil
-		case "pageup":
-			m.Viewport.LineUp(m.Viewport.Height / 2) // Move up by half the viewport height
-			return m, nil
-		case "pagedown":
-			m.Viewport.LineDown(m.Viewport.Height / 2) // Move down by half the viewport height
-			return m, nil
 		}
+
 	case tea.WindowSizeMsg:
 		constants.WinSize = msg
 		m.Viewport.Width = constants.BodyWidth()
 		m.Viewport.Height = constants.BodyHeight()
-		m.Viewport.SetContent(m.Content) // Update content on resize
 
 	case commands.ProgramErrMsg:
 		return GoError(msg.Err, func() (tea.Model, tea.Cmd) {
@@ -61,15 +46,23 @@ func (m ProjectBcksDelpoyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		})
 
 	case commands.ExecFinishedMsg:
-		m.Content = m.renderMarkdown(msg.Content)
-		m.Viewport.SetContent(m.Content)
+		m.Viewport.SetContent(m.renderMarkdown(msg.Content))
 		return m, nil
 
 	case commands.ExecStartMsg:
 		return m, commands.OpenProjectBcksDeployScript(m.uuid)
 	}
 
-	return m, nil
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+
+	m.Viewport, cmd = m.Viewport.Update(msg)
+	cmds = append(cmds, cmd)
+
+	return m, tea.Batch(cmds...)
+
 }
 
 func (m ProjectBcksDelpoyModel) View() string {
