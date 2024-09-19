@@ -14,6 +14,7 @@ import (
 
 const (
 	deleteProject navigate = iota
+	deploy
 	viewCompose
 	viewStatus
 	viewDeployScript
@@ -24,6 +25,7 @@ type ProjectModel struct {
 	Err          error
 	project      helpers.Project
 	shortGitData string
+	deployLog    string
 	Menu         list.Model
 	Loading      bool
 	dataLoading  bool
@@ -38,6 +40,7 @@ func MakeProjectModel() ProjectModel {
 	s.Spinner = spinner.Dot
 
 	menuItems := []list.Item{
+		item{title: "Deploy", desc: "Trigger deployment", navigation: deploy},
 		item{title: "Project status", desc: "View docker-compose ps and git status out", navigation: viewStatus},
 		item{title: "Viev compose", desc: "View the bckslash-compose.yaml file", navigation: viewCompose},
 		item{title: "Viev deploy script", desc: "View the bckslash-deploy.sh file", navigation: viewDeployScript},
@@ -87,6 +90,8 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return MakeProjectBcksDelpoyModel(m.project.UUID).Update(commands.ExecStartMsg{})
 			case viewStatus:
 				return MakeProjectStatusModel(m.project.UUID).Update(commands.ExecStartMsg{})
+			case deploy:
+				return m, commands.TriggerDeploy(m.project.UUID)
 			}
 		}
 	case tea.WindowSizeMsg:
@@ -100,6 +105,18 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case commands.ProjectViewData:
 		m.shortGitData = msg.GitLog
 		m.dataLoading = false
+		return m, nil
+
+	case commands.ExecFinishedMsg:
+		m.deployLog = msg.Content
+		m.Err = msg.Err
+		return m, nil
+
+	case commands.ProgramErrMsg:
+		m.Err = msg.Err
+		return m, nil
+
+	case commands.EmptyMsg:
 		return m, nil
 
 	case spinner.TickMsg:
@@ -118,6 +135,9 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ProjectModel) View() string {
+	if m.deployLog != "" {
+		return constants.Layout("Server Info", "q: Return home", constants.PadBodyContent.Render(m.deployLog))
+	}
 	if m.Loading {
 		// Show the spinner while loading
 		return constants.Layout("Server Info", "q: Return home", constants.PadBodyContent.Render(m.Spinner.View()+" Loading..."))
