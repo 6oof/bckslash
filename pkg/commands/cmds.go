@@ -16,33 +16,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type ExecFinishedMsg struct {
-	Err     error
-	Content string
-}
-
-type EmptyMsg struct{}
-
-type ExecStartMsg struct{}
-
-type ProjectFoundMsg struct {
-	Project helpers.Project
-}
-
-type ProjectViewData struct {
-	GitLog string
-}
-
-type ProgramErrMsg struct {
-	Err error
-}
-
-type ProjectListChangedMsg struct {
-	ProjectList []helpers.Project
-}
-
-type ReturnHomeMsg struct{}
-
 func FetchProject(uuid string) tea.Cmd {
 	return func() tea.Msg {
 		proj, err := helpers.GetProject(uuid)
