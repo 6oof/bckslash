@@ -42,7 +42,7 @@ func InitHomeModel() homeModel {
 		item{title: "Add a project", desc: "Add a project", navigation: addProject},
 		item{title: "Server info", desc: "Server monitoring dashboard", navigation: serverInfo},
 		item{title: "Server stats", desc: "Server monitoring dashboard", navigation: serverStats},
-		item{title: "Edito settings", desc: "Pick prefered text editor to use when needed", navigation: serverSettings},
+		item{title: "Editor settings", desc: "Pick prefered text editor to use when needed", navigation: serverSettings},
 		item{title: "Help", desc: "Basic information on bckslash", navigation: help},
 	}
 

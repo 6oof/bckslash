@@ -1,7 +1,9 @@
 package commands
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"lg/helpers"
 	"lg/views/constants"
 	"os"
@@ -17,6 +19,8 @@ type ExecFinishedMsg struct {
 	Err     error
 	Content string
 }
+
+type EmptyMsg struct{}
 
 type ExecStartMsg struct{}
 
@@ -231,4 +235,65 @@ func LoadProjectsCmd() tea.Cmd {
 		// Return a message that the project list has been loaded
 		return ProjectListChangedMsg{ProjectList: projects}
 	}
+}
+
+func TriggerDeploy(uuid string) tea.Cmd {
+
+	deployType, err := helpers.DeployCheck(uuid)
+
+	depSh := func() tea.Cmd {
+		pdir := path.Join("projects", uuid)
+
+		c := exec.Command("/bin/sh", "bckslash-deploy.sh")
+		c.Dir = pdir
+
+		var stdoutBuf, stderrBuf bytes.Buffer
+		c.Stdout = &stdoutBuf
+		c.Stderr = &stderrBuf
+
+		return tea.ExecProcess(c, func(err error) tea.Msg {
+
+			if err != nil {
+				// Handle both stderr content and the error
+				if stderrBuf.Len() > 0 {
+					return ExecFinishedMsg{Err: fmt.Errorf("error: %v, stderr: %s", err, stderrBuf.String())}
+				}
+			}
+
+			return ExecFinishedMsg{Content: stdoutBuf.String()}
+		})
+	}
+
+	depPlain := func() tea.Cmd {
+		pdir := path.Join("projects", uuid)
+
+		c := exec.Command("docker-copose", "up", "-f", "bckslash-compose.yaml", "-d")
+		c.Dir = pdir
+
+		var stdoutBuf, stderrBuf bytes.Buffer
+		c.Stdout = &stdoutBuf
+		c.Stderr = &stderrBuf
+
+		return tea.ExecProcess(c, func(err error) tea.Msg {
+			if err != nil {
+				// Handle both stderr content and the error
+				if stderrBuf.Len() > 0 {
+					return ExecFinishedMsg{Err: fmt.Errorf("error: %v, stderr: %s", err, stderrBuf.String())}
+				}
+			}
+			return ExecFinishedMsg{Content: stdoutBuf.String()}
+		})
+	}
+
+	switch deployType {
+	case helpers.UnDeployable:
+		return func() tea.Msg { return ProgramErrMsg{Err: err} }
+	case helpers.DeploySh:
+		return depSh()
+	case helpers.DeployPlain:
+		return depPlain()
+	default:
+		return nil
+	}
+
 }
