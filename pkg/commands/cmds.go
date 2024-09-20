@@ -13,6 +13,7 @@ import (
 	"github.com/6oof/bckslash/pkg/helpers"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -104,7 +105,15 @@ func OpenProjectBcksDeployScript(uuid string) tea.Cmd {
 			}
 			return ProgramErrMsg{Err: err}
 		}
-		return ExecFinishedMsg{Content: string(content)}
+
+		var cntnt string = "```bash\n" + string(content) + "```"
+
+		out, err := glamour.Render(cntnt, "tokyo-night")
+		if err != nil {
+			return ProgramErrMsg{Err: errors.New("Error rendering markdown")}
+		}
+
+		return ExecFinishedMsg{Content: out}
 	}
 }
 
@@ -246,36 +255,34 @@ func TriggerDeploy(uuid string) tea.Cmd {
 		})
 	}
 
-	depPlain := func() tea.Cmd {
-		pdir := path.Join("projects", uuid)
-
-		c := exec.Command("docker-copose", "up", "-f", "bckslash-compose.yaml", "-d")
-		c.Dir = pdir
-
-		var stdoutBuf, stderrBuf bytes.Buffer
-		c.Stdout = &stdoutBuf
-		c.Stderr = &stderrBuf
-
-		return tea.ExecProcess(c, func(err error) tea.Msg {
-			if err != nil {
-				// Handle both stderr content and the error
-				if stderrBuf.Len() > 0 {
-					return ProgramErrMsg{Err: fmt.Errorf("error: %v, stderr: %s", err, stderrBuf.String())}
-				}
-			}
-			return ExecFinishedMsg{Content: stdoutBuf.String()}
-		})
-	}
-
 	switch deployType {
 	case helpers.UnDeployable:
 		return func() tea.Msg { return ProgramErrMsg{Err: err} }
 	case helpers.DeploySh:
 		return depSh()
-	case helpers.DeployPlain:
-		return depPlain()
 	default:
-		return nil
+		return func() tea.Msg {
+			return ProgramErrMsg{Err: errors.New("Project failed the minimum requirements for deployment")}
+		}
 	}
 
+}
+
+func ShellInProject(uuid string) tea.Cmd {
+	shell := os.Getenv("SHELL")
+	if shell == "" {
+		shell = "/bin/sh" // fallback to a default shell
+	}
+
+	// Create the command to echo the message and then start the shell
+	command := fmt.Sprintf("clear && echo '\nShell in project: %s\nuse Ctrl+D or type 'exit' to exit\n' && exec %s", uuid, shell)
+	c := exec.Command("sh", "-c", command) // Use "sh -c" to run the combined command
+	c.Dir = path.Join("projects", uuid)
+
+	return tea.ExecProcess(c, func(err error) tea.Msg {
+		if err != nil {
+			return ExecFinishedMsg{}
+		}
+		return ExecFinishedMsg{}
+	})
 }
