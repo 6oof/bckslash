@@ -1,6 +1,8 @@
 package views
 
 import (
+	"path"
+
 	"github.com/6oof/bckslash/pkg/commands"
 	"github.com/6oof/bckslash/pkg/constants"
 	"github.com/6oof/bckslash/pkg/helpers"
@@ -19,6 +21,7 @@ const (
 	viewStatus
 	viewDeployScript
 	editEnv
+	executeCommand
 )
 
 type ProjectModel struct {
@@ -39,7 +42,7 @@ func MakeProjectModel() ProjectModel {
 	menuItems := []list.Item{
 		item{title: "Deploy", desc: "Trigger deployment", navigation: deploy},
 		item{title: "Project status", desc: "View docker-compose ps and git status out", navigation: viewStatus},
-		item{title: "View compose", desc: "View the bckslash-compose.yaml file", navigation: viewCompose},
+		item{title: "Execute commands", desc: "Opens a shell in project directory", navigation: executeCommand},
 		item{title: "View deploy script", desc: "View the bckslash-deploy.sh file", navigation: viewDeployScript},
 		item{title: "Enviroment", desc: "Edit .env file", navigation: editEnv},
 		item{title: "Delete a project", desc: "You'll be asked to confirm", navigation: deleteProject},
@@ -80,13 +83,15 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				pdm.Init()
 				return pdm, nil
 			case editEnv:
-				return MakeProjectEnvModel(m.project.UUID).Update(commands.ExecStartMsg{})
-			case viewCompose:
-				return MakeProjectBcksComposeModel(m.project.UUID).Update(commands.ExecStartMsg{})
+				return m, commands.OpenEditor(path.Join("projects", m.project.UUID, ".env"))
+			case executeCommand:
+				return m, commands.ShellInProject(m.project.UUID)
 			case viewDeployScript:
-				return MakeProjectBcksDelpoyModel(m.project.UUID).Update(commands.ExecStartMsg{})
+				m.Loading = true
+				return m, commands.OpenProjectBcksDeployScript(m.project.UUID)
 			case viewStatus:
-				return MakeProjectStatusModel(m.project.UUID).Update(commands.ExecStartMsg{})
+				m.Loading = true
+				return m, commands.ShowProjectStatus(m.project.UUID)
 			case deploy:
 				return m, commands.TriggerDeploy(m.project.UUID)
 			}
@@ -105,8 +110,9 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case commands.ExecFinishedMsg:
-		m.deployLog = msg.Content
-		return m, nil
+		return GoSuccess(msg.Content, func() (tea.Model, tea.Cmd) {
+			return MakeProjectModel(), commands.FetchProject(m.project.UUID)
+		})
 
 	case commands.ProgramErrMsg:
 		return GoError(msg.Err, func() (tea.Model, tea.Cmd) {
@@ -130,11 +136,11 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m ProjectModel) View() string {
 	if m.deployLog != "" {
-		return constants.Layout("Server Info", "q: Return home", constants.PadBodyContent.Render(m.deployLog))
+		return constants.Layout("Deploy log", "q: Return home", constants.PadBodyContent.Render(m.deployLog))
 	}
 	if m.Loading {
 		// Show the spinner while loading
-		return constants.Layout("Server Info", "q: Return home", constants.PadBodyContent.Render(m.Spinner.View()+" Loading..."))
+		return constants.Layout("Project", "q: Return home", constants.PadBodyContent.Render(m.Spinner.View()+" Loading..."))
 	}
 
 	crd := ""
