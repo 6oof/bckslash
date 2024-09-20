@@ -8,8 +8,8 @@ import (
 // Constants and layout values
 const (
 	BarOffset        = 8
-	MaxWidth         = 100
-	MaxHeight        = 40
+	MaxWidth         = 150
+	MaxHeight        = 70
 	MinWidthForSplit = 100
 )
 
