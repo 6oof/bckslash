@@ -29,7 +29,7 @@ func MakeEditorSelectionModel() EditorFormModel {
 			huh.NewSelect[string]().
 				Key("editor").
 				Description("Some action within bckslash will require you to edit docker-compose, json, and other files. This sets the editor you use for these actions.").
-				Options(huh.NewOptions("vim", "nano", "micro")...). // Options for the editor
+				Options(huh.NewOptions("vim", "nano")...). // Options for the editor
 				Title("Choose your prefered editor:").Value(&editorCommand),
 		),
 

@@ -86,7 +86,7 @@ func OpenProjectBcksCompose(uuid string) tea.Cmd {
 		if err != nil {
 
 			if errors.Is(err, os.ErrNotExist) {
-				return ProgramErrMsg{Err: errors.New("Bckslash compose file not found, to run the project please follow the instructins in home>help")}
+				return ProgramErrMsg{Err: errors.New("Bckslash compose file not found! To deploy the project please follow the instructins in home>help")}
 			}
 			return ProgramErrMsg{Err: err}
 		}
@@ -101,7 +101,7 @@ func OpenProjectBcksDeployScript(uuid string) tea.Cmd {
 		if err != nil {
 
 			if errors.Is(err, os.ErrNotExist) {
-				return ProgramErrMsg{Err: errors.New("bckslash-deploy.sh file not found!")}
+				return ProgramErrMsg{Err: errors.New("bckslash-deploy.sh file not found! To deploy the project please follow the instructins in home>help")}
 			}
 			return ProgramErrMsg{Err: err}
 		}
@@ -140,6 +140,20 @@ func ShowProjectStatus(uuid string) tea.Cmd {
 		titleStyle := lipgloss.NewStyle().Bold(true).Underline(true).Foreground(constants.HighlightColor)
 		contentStyle := lipgloss.NewStyle().PaddingLeft(2)
 
+		// Helper function to handle command execution and formatting output
+		formatOutput := func(title, output string, err error) string {
+			var sb strings.Builder
+			sb.WriteString(titleStyle.Render(title))
+			sb.WriteString("\n\n")
+			if err != nil {
+				sb.WriteString(contentStyle.Render(fmt.Sprintf("Error: %s\n%s\n", err.Error(), output)))
+			} else {
+				sb.WriteString(contentStyle.Render(output))
+			}
+			sb.WriteString("\n\n") // Add uniform spacing between sections
+			return sb.String()
+		}
+
 		// Execute docker-compose ps command
 		cDocker := exec.Command("docker-compose", "-f", "bckslash-compose.yaml", "ps") //nolint:gosec
 		cDocker.Dir = projectPath
@@ -153,25 +167,11 @@ func ShowProjectStatus(uuid string) tea.Cmd {
 		// Combine the outputs and handle any errors
 		var combinedOut strings.Builder
 
-		// Docker Compose ps output or error
+		// Docker Compose ps output
+		combinedOut.WriteString(formatOutput("Docker Compose Status", string(dockerOut), dockerErr))
 
-		combinedOut.WriteString(titleStyle.Render("Docker Compose Status"))
-		combinedOut.WriteString("\n")
-		combinedOut.WriteString("\n")
-		if dockerErr != nil {
-			combinedOut.WriteString(contentStyle.Render("Error running docker-compose ps:\n" + string(dockerOut) + "\n" + dockerErr.Error() + "\n"))
-		} else {
-			combinedOut.WriteString(contentStyle.Render(string(dockerOut) + "\n"))
-		}
-
-		// Git status output or error
-		combinedOut.WriteString(titleStyle.Render("Git Status\n"))
-		combinedOut.WriteString("\n")
-		if gitErr != nil {
-			combinedOut.WriteString(contentStyle.Render("Error running git status:\n\n" + string(gitOut) + "\n" + gitErr.Error() + "\n"))
-		} else {
-			combinedOut.WriteString(contentStyle.Render(string(gitOut)))
-		}
+		// Git status output
+		combinedOut.WriteString(formatOutput("Git Status", string(gitOut), gitErr))
 
 		// Return the combined output as a message
 		return ExecFinishedMsg{Content: combinedOut.String()}

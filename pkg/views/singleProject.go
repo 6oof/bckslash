@@ -21,6 +21,7 @@ const (
 	viewStatus
 	viewDeployScript
 	editEnv
+	editProxy
 	executeCommand
 )
 
@@ -45,6 +46,7 @@ func MakeProjectModel() ProjectModel {
 		item{title: "Execute commands", desc: "Opens a shell in project directory", navigation: executeCommand},
 		item{title: "View deploy script", desc: "View the bckslash-deploy.sh file", navigation: viewDeployScript},
 		item{title: "View compose", desc: "View the docker compose yaml", navigation: viewCompose},
+		item{title: "Domain", desc: "Edit reverse proxy labels", navigation: editProxy},
 		item{title: "Enviroment", desc: "Edit .env file", navigation: editEnv},
 		item{title: "Delete a project", desc: "You'll be asked to confirm", navigation: deleteProject},
 	}
@@ -85,6 +87,8 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return pdm, nil
 			case editEnv:
 				return m, commands.OpenEditor(path.Join("projects", m.project.UUID, ".env"))
+			case editProxy:
+				return m, commands.OpenEditor(path.Join("projects", m.project.UUID, ".bckslash", "bckslash-traefik-compose.yaml"))
 			case executeCommand:
 				return m, commands.ShellInProject(m.project.UUID)
 			case viewDeployScript:

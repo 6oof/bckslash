@@ -110,9 +110,6 @@ func AddProjectFromCommand(title, projectType, repo, branch, serviceName, domain
 		return fmt.Errorf("git clone failed: %v\nstdout: %s\nstderr: %s\n If you're sure the repository exists, please add the Deploy key (ssh)", err, stdoutBuf.String(), stderrBuf.String())
 	}
 
-	// TODO check if project has bot deploy and compoose files
-	// TODO clean up if the project is not deployable
-
 	_ = resolveEnvOnCreate(pro.UUID)
 
 	// TODO create the .bckslash folder to store the merge dockerfile
