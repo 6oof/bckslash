@@ -42,7 +42,7 @@ func OpenEditor(filepath string) tea.Cmd {
 		if err != nil {
 			return ProgramErrMsg{Err: err}
 		}
-		return ExecFinishedMsg{}
+		return ExecFinishedMsg{Content: "Editor closed successfully"}
 	})
 }
 

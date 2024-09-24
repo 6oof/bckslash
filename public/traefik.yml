@@ -55,14 +55,20 @@ http:
       tls:
         certResolver: myresolver  # Use the Let's Encrypt resolver defined earlier
 
-# Basic authentication for the dashboard
+# Define middlewares
 middlewares:
   auth:
     basicAuth:
-      users:
-        - "user:$$apr1$$hashed_password"  # Replace with your username and hashed password
+      # Define users for basic authentication here.
+      # Format:
+      # To generate hashed passwords, use the htpasswd command-line tool:
+      # htpasswd -nbB username password
+      # users:
+      #   - "username:$$hashed_password"
+      users: []  # No users defined initially. Delete this line when adding users.
+
 
 # Global logging configuration
 log:
-  level: INFO  # Available levels: DEBUG, INFO, WARN, ERROR
+  level: ERROR  # Available levels: DEBUG, INFO, WARN, ERROR
   filePath: "/var/log/traefik.log"  # Log file location

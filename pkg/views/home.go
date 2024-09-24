@@ -1,6 +1,8 @@
 package views
 
 import (
+	"path"
+
 	"github.com/6oof/bckslash/pkg/commands"
 	"github.com/6oof/bckslash/pkg/constants"
 
@@ -16,7 +18,8 @@ const (
 	listProjects
 	addProject
 	serverInfo
-	serverSettings
+	editorSettings
+	proxySettings
 	help
 	no
 )
@@ -42,7 +45,8 @@ func InitHomeModel() homeModel {
 		item{title: "Add a project", desc: "Add a project", navigation: addProject},
 		item{title: "Server info", desc: "Server monitoring dashboard", navigation: serverInfo},
 		item{title: "Server Activity", desc: "Server activity monitoring (htop)", navigation: serverStats},
-		item{title: "Editor settings", desc: "Pick prefered text editor to use when needed", navigation: serverSettings},
+		item{title: "Proxy settings", desc: "Edit traefik configurations", navigation: proxySettings},
+		item{title: "Editor settings", desc: "Pick prefered text editor to use when needed", navigation: editorSettings},
 		item{title: "Help", desc: "Basic information on bckslash", navigation: help},
 	}
 
@@ -84,6 +88,8 @@ func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return MakeProjectsModel(), commands.LoadProjectsCmd()
 			case serverStats:
 				return MakeServerStatsModel().Update(commands.ExecStartMsg{})
+			case proxySettings:
+				return m, commands.OpenEditor(path.Join("public", "traefik.yml"))
 
 			case serverInfo:
 				return MakeServerInfoModel().Update(commands.ExecStartMsg{})
@@ -91,7 +97,7 @@ func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case help:
 				return MakeServerHelpModel().Update(commands.ExecStartMsg{})
 
-			case serverSettings:
+			case editorSettings:
 				esm := MakeEditorSelectionModel()
 				return esm, esm.Init()
 
@@ -103,6 +109,8 @@ func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case commands.ProgramErrMsg:
 		return GoError(msg.Err, GoHome)
 
+	case commands.ExecFinishedMsg:
+		return GoSuccess(msg.Content, GoHome)
 	case tea.WindowSizeMsg:
 		constants.WinSize = msg
 	}
