@@ -71,7 +71,7 @@ func FetchProjectData(uuid string) tea.Cmd {
 func OpenHelpMd() tea.Cmd {
 	return func() tea.Msg {
 		// Read the content of the HELP.md file
-		content, err := os.ReadFile("mds/HELP.md")
+		content, err := os.ReadFile("public/HELP.md")
 		if err != nil {
 			return ProgramErrMsg{Err: err}
 		}

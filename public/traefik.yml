@@ -1,0 +1,68 @@
+# This is the main Traefik configuration file (traefik.yml)
+# It contains entry points, certificates management, middleware definitions, and routing rules
+
+# Enable the Traefik dashboard for monitoring
+api:
+  dashboard: true  # This enables the Traefik dashboard
+
+# Define entry points: web (HTTP) and websecure (HTTPS)
+entryPoints:
+  web:
+    address: ":80"  # Expose HTTP traffic on port 80
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true  # Redirect all HTTP traffic to HTTPS
+  websecure:
+    address: ":443"  # Expose HTTPS traffic on port 443
+
+# Enable automatic certificate generation with Let's Encrypt using TLS challenge
+certificatesResolvers:
+  myresolver:
+    acme:
+      email: admin@example.com  # Replace with your Let's Encrypt email for notifications
+      storage: /letsencrypt/acme.json  # File location for storing certificates
+      tlsChallenge: true  # Use TLS challenge for generating certificates
+
+# Docker provider to detect services with Traefik labels in their compose files
+providers:
+  docker:
+    exposedByDefault: false  # Services must explicitly expose themselves using Traefik labels
+
+# Define middlewares
+middlewares:
+  https-redirect:
+    redirectScheme:
+      scheme: "https"
+      permanent: true  # Redirect HTTP to HTTPS
+  ratelimit:
+    rateLimit:
+      average: 100  # Number of requests per second
+      burst: 50  # Burst size
+
+# Define routers for the dashboard
+http:
+  routers:
+    traefik-dashboard:
+      rule: "Host(`traefik.example.com`)"  # Replace 'traefik.example.com' with your actual domain for the dashboard
+      entryPoints:
+        - websecure  # Use HTTPS entry point for the dashboard
+      service: api@internal  # Use the internal Traefik API to serve the dashboard
+      middlewares:
+        - auth  # Protect the dashboard with basic authentication
+      tls:
+        certResolver: myresolver  # Use the Let's Encrypt resolver defined earlier
+
+# Basic authentication for the dashboard
+middlewares:
+  auth:
+    basicAuth:
+      users:
+        - "user:$$apr1$$hashed_password"  # Replace with your username and hashed password
+
+# Global logging configuration
+log:
+  level: INFO  # Available levels: DEBUG, INFO, WARN, ERROR
+  filePath: "/var/log/traefik.log"  # Log file location

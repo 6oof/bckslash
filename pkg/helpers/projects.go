@@ -156,9 +156,7 @@ func CreateTraefikFolder(uuid, service, domain string) error {
 	// Create bckslash-traefik-compose.yaml file with labels
 	composePath := filepath.Join(bckslashDir, "bckslash-traefik-compose.yaml")
 
-	composeTemplate := `version: '3.8'
-
-services:
+	composeTemplate := `services:
   {{ .Service }}:
     labels:
       - "traefik.enable=true"
