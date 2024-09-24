@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html/template"
 	"io"
 	"os"
 	"os/exec"
@@ -74,7 +75,7 @@ func GetProject(uuid string) (Project, error) {
 }
 
 // AddProjectFromCommand clones the repository and adds the project
-func AddProjectFromCommand(title, projectType, repo, branch string) error {
+func AddProjectFromCommand(title, projectType, repo, branch, serviceName, domain string) error {
 	pro := Project{
 		Title:      title,
 		UUID:       shortuuid.New(),
@@ -109,7 +110,15 @@ func AddProjectFromCommand(title, projectType, repo, branch string) error {
 		return fmt.Errorf("git clone failed: %v\nstdout: %s\nstderr: %s\n If you're sure the repository exists, please add the Deploy key (ssh)", err, stdoutBuf.String(), stderrBuf.String())
 	}
 
+	// TODO check if project has bot deploy and compoose files
+	// TODO clean up if the project is not deployable
+
 	_ = resolveEnvOnCreate(pro.UUID)
+
+	// TODO create the .bckslash folder to store the merge dockerfile
+	if err := CreateTraefikFolder(pro.UUID, serviceName, domain); err != nil {
+		return fmt.Errorf("Failed to create traefik folder: %w", err)
+	}
 
 	if err := BcksDb().Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("projects"))
@@ -129,6 +138,110 @@ func AddProjectFromCommand(title, projectType, repo, branch string) error {
 	}
 
 	// If cloning succeeded, proceed with adding the project
+	return nil
+}
+
+func CreateTraefikFolder(uuid, service, domain string) error {
+	// Define the path for the .bckslash folder
+	bckslashDir := filepath.Join("projects", uuid, ".bckslash")
+
+	// Create the .bckslash directory
+	if err := os.MkdirAll(bckslashDir, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create .bckslash directory: %w", err)
+	}
+
+	// Create .gitignore file
+	gitignorePath := filepath.Join(bckslashDir, ".gitignore")
+	if err := os.WriteFile(gitignorePath, []byte("*\n"), 0644); err != nil {
+		return fmt.Errorf("failed to create .gitignore file: %w", err)
+	}
+
+	// Create bckslash-traefik-compose.yaml file with labels
+	composePath := filepath.Join(bckslashDir, "bckslash-traefik-compose.yaml")
+
+	composeTemplate := `version: '3.8'
+
+services:
+  {{ .Service }}:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.{{ .Service }}.rule=Host(` + "`{{ .Domain }}`" + `)"
+      - "traefik.http.routers.{{ .Service }}.entrypoints=websecure"
+      - "traefik.http.routers.{{ .Service }}.middlewares=https-redirect"
+      - "traefik.http.services.{{ .Service }}.loadbalancer.server.port=80"
+      - "traefik.http.routers.{{ .Service }}-www.rule=Host(` + "`www.{{ .Domain }}`" + `)"
+      - "traefik.http.routers.{{ .Service }}-www.entrypoints=websecure"
+      - "traefik.http.routers.{{ .Service }}-www.middlewares=https-redirect"
+      - "traefik.http.routers.{{ .Service }}-www.service={{ .Service }}"
+      - "traefik.http.middlewares.redirect-to-https.redirectScheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectScheme.permanent=true"
+      - "traefik.http.routers.{{ .Service }}.tls=true"
+      - "traefik.http.routers.{{ .Service }}-www.tls=true"
+
+      # Adjust rate limiting as needed. Values are requests/s
+      - "traefik.http.middlewares.ratelimit.rateLimit.average=100"
+      - "traefik.http.middlewares.ratelimit.rateLimit.burst=50"
+      - "traefik.http.routers.{{ .Service }}.middlewares=ratelimit"
+      - "traefik.http.routers.{{ .Service }}-www.middlewares=ratelimit"
+
+      # Uncomment the following lines to enable basic authentication
+      # Replace 'user' with your desired username and 'hashedPassword' with a valid bcrypt hash
+      # - "traefik.http.routers.{{ .Service }}.middlewares=auth"
+      # - "traefik.http.middlewares.auth.basicAuth.users=user:hashedPassword"
+
+      # To enable replicas, uncomment the 'deploy' section with the desired number:
+      # deploy:
+      #   replicas: 2
+
+    networks:
+      - bckslash
+    restart: on-failure:5
+
+networks:
+  bckslash:
+    external: true
+
+# Define the middleware for HTTPS redirection
+middlewares:
+  https-redirect:
+    redirectScheme:
+      scheme: "https"
+      permanent: true
+
+# Global logging configuration for all services
+logging:
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+# Logging configuration
+# Logs will be stored in the .bckslash directory of the project
+# Base path: ./projects/{{ .UUID }}/.bckslash/bckslash.log
+logs:
+  filePath: ./.bckslash/bckslash.log
+  level: ERROR
+`
+
+	tmpl, err := template.New("compose").Parse(composeTemplate)
+	if err != nil {
+		return fmt.Errorf("failed to parse compose template: %w", err)
+	}
+
+	file, err := os.Create(composePath)
+	if err != nil {
+		return fmt.Errorf("failed to create bckslash-traefik-compose.yaml file: %w", err)
+	}
+	defer file.Close()
+
+	if err := tmpl.Execute(file, map[string]string{
+		"Service": service,
+		"Domain":  domain,
+		"UUID":    uuid,
+	}); err != nil {
+		return fmt.Errorf("failed to execute compose template: %w", err)
+	}
+
 	return nil
 }
 

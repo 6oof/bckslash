@@ -178,9 +178,9 @@ func ShowProjectStatus(uuid string) tea.Cmd {
 	}
 }
 
-func AddProjectCommand(title, projectType, repo, branch string) tea.Cmd {
+func AddProjectCommand(title, projectType, repo, branch, serviceName, domain string) tea.Cmd {
 	return func() tea.Msg {
-		err := helpers.AddProjectFromCommand(title, projectType, repo, branch)
+		err := helpers.AddProjectFromCommand(title, projectType, repo, branch, serviceName, domain)
 		if err != nil {
 			return ProgramErrMsg{Err: err}
 		}
