@@ -41,7 +41,7 @@ func InitHomeModel() homeModel {
 		item{title: "Projects", desc: "Open project list", navigation: listProjects},
 		item{title: "Add a project", desc: "Add a project", navigation: addProject},
 		item{title: "Server info", desc: "Server monitoring dashboard", navigation: serverInfo},
-		item{title: "Server stats", desc: "Server monitoring dashboard", navigation: serverStats},
+		item{title: "Server Activity", desc: "Server activity monitoring (htop)", navigation: serverStats},
 		item{title: "Editor settings", desc: "Pick prefered text editor to use when needed", navigation: serverSettings},
 		item{title: "Help", desc: "Basic information on bckslash", navigation: help},
 	}

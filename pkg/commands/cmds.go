@@ -47,7 +47,7 @@ func OpenEditor(filepath string) tea.Cmd {
 }
 
 func OpenBTM() tea.Cmd {
-	c := exec.Command("btm", "--theme", "nord") //nolint:gosec
+	c := exec.Command("htop", "--readonly") //nolint:gosec
 	return tea.ExecProcess(c, func(err error) tea.Msg {
 		if err != nil {
 			return ProgramErrMsg{Err: err}
@@ -101,7 +101,7 @@ func OpenProjectBcksDeployScript(uuid string) tea.Cmd {
 		if err != nil {
 
 			if errors.Is(err, os.ErrNotExist) {
-				return ProgramErrMsg{Err: errors.New("bckslash-deploy.sh file not found!\nThis might not be a problem if the only thing you're looking to do when deploying is starting the containers.")}
+				return ProgramErrMsg{Err: errors.New("bckslash-deploy.sh file not found!")}
 			}
 			return ProgramErrMsg{Err: err}
 		}
@@ -120,7 +120,7 @@ func OpenProjectBcksDeployScript(uuid string) tea.Cmd {
 func ShowNeofetch() tea.Cmd {
 	return func() tea.Msg {
 		// Start a goroutine to run the command asynchronously
-		c := exec.Command("neofetch", "--off") //nolint:gosec
+		c := exec.Command("screenfetch") //nolint:gosec
 		out, err := c.Output()
 
 		// Return the result as a message when the command finishes

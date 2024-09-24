@@ -44,6 +44,7 @@ func MakeProjectModel() ProjectModel {
 		item{title: "Project status", desc: "View docker-compose ps and git status out", navigation: viewStatus},
 		item{title: "Execute commands", desc: "Opens a shell in project directory", navigation: executeCommand},
 		item{title: "View deploy script", desc: "View the bckslash-deploy.sh file", navigation: viewDeployScript},
+		item{title: "View compose", desc: "View the docker compose yaml", navigation: viewCompose},
 		item{title: "Enviroment", desc: "Edit .env file", navigation: editEnv},
 		item{title: "Delete a project", desc: "You'll be asked to confirm", navigation: deleteProject},
 	}
@@ -89,6 +90,9 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case viewDeployScript:
 				m.Loading = true
 				return m, commands.OpenProjectBcksDeployScript(m.project.UUID)
+			case viewCompose:
+				m.Loading = true
+				return m, commands.OpenProjectBcksCompose(m.project.UUID)
 			case viewStatus:
 				m.Loading = true
 				return m, commands.ShowProjectStatus(m.project.UUID)
