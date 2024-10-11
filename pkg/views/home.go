@@ -77,11 +77,11 @@ func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 
-		case key.Matches(msg, constants.Keymap.Quit):
+		case key.Matches(msg, constants.HomeKeymap.Quit):
 			m.quitting = true
 			return m, tea.Quit
 
-		case key.Matches(msg, constants.Keymap.Enter):
+		case key.Matches(msg, constants.HomeKeymap.Enter):
 			switch m.mainNav.SelectedItem().(item).navigation {
 			case navigateAddProject:
 				apm := MakePeojectAddModel()
@@ -108,7 +108,7 @@ func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			}
 
-		case key.Matches(msg, constants.Keymap.Back):
+		case key.Matches(msg, constants.HomeKeymap.Back):
 			return m, nil
 
 		}
@@ -140,7 +140,7 @@ func (m homeModel) View() string {
 	m.mainNav.SetSize(constants.BodyHalfWidth(), constants.BodyHeight())
 	return constants.Layout(
 		"home",
-		constants.MainHelpString,
+		constants.HomeHelpString,
 		constants.HalfAndHalfComposition(
 			m.mainNav.View(),
 			constants.Card(

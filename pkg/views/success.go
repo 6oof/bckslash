@@ -39,11 +39,13 @@ func (m SuccessModle) Init() tea.Cmd {
 
 func (m SuccessModle) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m.ReturnMc()
 		}
+
 	case tea.WindowSizeMsg:
 		constants.WinSize = msg
 		m.Viewport.Width = constants.BodyWidth()

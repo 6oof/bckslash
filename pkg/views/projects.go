@@ -74,13 +74,13 @@ func (m projectsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, constants.Keymap.Quit):
+		case key.Matches(msg, constants.HomeKeymap.Quit):
 			return GoHome()
 
-		case key.Matches(msg, constants.Keymap.Back):
+		case key.Matches(msg, constants.HomeKeymap.Back):
 			return GoHome()
 
-		case key.Matches(msg, constants.Keymap.Enter):
+		case key.Matches(msg, constants.HomeKeymap.Enter):
 			uuid := m.projectList.SelectedItem().(project).uuid
 			return MakeProjectModel(), commands.FetchProject(uuid)
 		}
@@ -116,7 +116,7 @@ func (m projectsModel) View() string {
 		return constants.Layout("home", "", "loading...")
 	} else {
 		m.projectList.SetSize(constants.BodyWidth()/2, constants.BodyHeight())
-		return constants.Layout("home", constants.MainHelpString, m.projectList.View())
+		return constants.Layout("home", constants.HomeHelpString, m.projectList.View())
 
 	}
 }

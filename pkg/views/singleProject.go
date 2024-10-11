@@ -79,7 +79,7 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return GoHome()
 		}
 		switch {
-		case key.Matches(msg, constants.Keymap.Enter):
+		case key.Matches(msg, constants.HomeKeymap.Enter):
 			switch m.Menu.SelectedItem().(item).navigation {
 			case deleteProject:
 				pdm, _ := MakePeojectDeleteModel(m.project.UUID)
