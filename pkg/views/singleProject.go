@@ -84,9 +84,9 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				pdm.Init()
 				return pdm, nil
 			case editEnv:
-				return m, commands.OpenEditor(path.Join("projects", m.project.UUID, ".env"))
+				return m, commands.OpenEditor(path.Join(constants.ProjectsDir, m.project.UUID, ".env"))
 			case editProxy:
-				return m, commands.OpenEditor(path.Join("projects", m.project.UUID, ".bckslash", "bckslash-traefik-compose.yaml"))
+				return m, commands.OpenEditor(path.Join(constants.ProjectsDir, m.project.UUID, ".bckslash", "bckslash-traefik-compose.yaml"))
 			case executeCommand:
 				return m, commands.ShellInProject(m.project.UUID)
 			case viewDeployScript:

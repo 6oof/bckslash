@@ -13,16 +13,16 @@ const (
 	DeploySh
 )
 
-func DeployCheck(uuid string) (deployType, error) {
-	pdir := path.Join("projects", uuid)
-
+func DeployCheck(uuid, projectsDir string) (deployType, error) {
+	pdir := path.Join(projectsDir, uuid)
 	bcksDeploy := path.Join(pdir, "bcks-deploy.sh")
 
 	_, err := os.Open(bcksDeploy)
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
+	if errors.Is(err, os.ErrNotExist) {
+		return UnDeployable, nil
+	} else if err != nil {
 		return UnDeployable, err
-	} else {
-		return DeploySh, nil
 	}
 
+	return DeploySh, nil
 }

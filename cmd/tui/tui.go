@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/6oof/bckslash/pkg/constants"
 	"github.com/6oof/bckslash/pkg/helpers"
 	"github.com/6oof/bckslash/pkg/views"
 
@@ -26,7 +27,7 @@ func StartTea() error {
 		}()
 	}
 
-	err := helpers.OpenDb()
+	err := helpers.OpenDb(constants.DatabaseFile)
 	if err != nil {
 		panic("Falid opening bcks database: " + err.Error())
 	}

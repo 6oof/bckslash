@@ -8,8 +8,8 @@ import (
 
 var database *bolt.DB
 
-func OpenDb() error {
-	db, err := bolt.Open("bckslash.db", 0600, nil)
+func OpenDb(fileName string) error {
+	db, err := bolt.Open(fileName, 0600, nil)
 
 	if err != nil {
 		return err
@@ -28,8 +28,9 @@ func OpenDb() error {
 	return nil
 }
 
-func CloseDb() {
-	database.Close()
+func CloseDb() error {
+	err := database.Close()
+	return err
 }
 
 func ensureSettings() error {

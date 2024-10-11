@@ -82,7 +82,7 @@ func OpenHelpMd() tea.Cmd {
 func OpenProjectBcksCompose(uuid string) tea.Cmd {
 	return func() tea.Msg {
 		// Read the content of the HELP.md file
-		content, err := os.ReadFile(path.Join("projects", uuid, "bckslash-compose.yaml"))
+		content, err := os.ReadFile(path.Join(constants.ProjectsDir, uuid, "bckslash-compose.yaml"))
 		if err != nil {
 
 			if errors.Is(err, os.ErrNotExist) {
@@ -97,7 +97,7 @@ func OpenProjectBcksCompose(uuid string) tea.Cmd {
 func OpenProjectBcksDeployScript(uuid string) tea.Cmd {
 	return func() tea.Msg {
 		// Read the content of the HELP.md file
-		content, err := os.ReadFile(path.Join("projects", uuid, "bckslash-deploy.sh"))
+		content, err := os.ReadFile(path.Join(constants.ProjectsDir, uuid, "bckslash-deploy.sh"))
 		if err != nil {
 
 			if errors.Is(err, os.ErrNotExist) {
@@ -134,7 +134,7 @@ func ShowNeofetch() tea.Cmd {
 
 func ShowProjectStatus(uuid string) tea.Cmd {
 	return func() tea.Msg {
-		projectPath := path.Join("projects", uuid)
+		projectPath := path.Join(constants.ProjectsDir, uuid)
 
 		// Define styles for titles and content
 		titleStyle := lipgloss.NewStyle().Bold(true).Underline(true).Foreground(constants.HighlightColor)
@@ -230,10 +230,10 @@ func LoadProjectsCmd() tea.Cmd {
 
 func TriggerDeploy(uuid string) tea.Cmd {
 
-	deployType, err := helpers.DeployCheck(uuid)
+	deployType, err := helpers.DeployCheck(uuid, "projects")
 
 	depSh := func() tea.Cmd {
-		pdir := path.Join("projects", uuid)
+		pdir := path.Join(constants.ProjectsDir, uuid)
 
 		c := exec.Command("/bin/sh", "bckslash-deploy.sh")
 		c.Dir = pdir
@@ -277,7 +277,7 @@ func ShellInProject(uuid string) tea.Cmd {
 	// Create the command to echo the message and then start the shell
 	command := fmt.Sprintf("clear && echo '\nShell in project: %s\nuse Ctrl+D or type 'exit' to exit\n' && exec %s", uuid, shell)
 	c := exec.Command("sh", "-c", command) // Use "sh -c" to run the combined command
-	c.Dir = path.Join("projects", uuid)
+	c.Dir = path.Join(constants.ProjectsDir, uuid)
 
 	return tea.ExecProcess(c, func(err error) tea.Msg {
 		if err != nil {
