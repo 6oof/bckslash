@@ -6,6 +6,7 @@ services:
     command:
       - "--configFile=/traefik.yml"  # Use the traefik.yml file for detailed configuration
       - "--log.level=ERROR"  # Set the log level to ERROR directly in the compose file
+      - "--providers.file.watch=true"  # Enable watching for configuration changes
     ports:
       - "80:80"  # Expose HTTP (port 80)
       - "443:443"  # Expose HTTPS (port 443)

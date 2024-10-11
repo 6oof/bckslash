@@ -184,13 +184,12 @@ func CreateTraefikFolder(uuid, service, domain string) error {
       # - "traefik.http.routers.{{ .Service }}.middlewares=auth"
       # - "traefik.http.middlewares.auth.basicAuth.users=user:hashedPassword"
 
-      # To enable replicas, uncomment the 'deploy' section with the desired number:
-      # deploy:
-      #   replicas: 2
-
     networks:
       - bckslash
-    restart: on-failure:5
+
+    deploy:
+	  mode: replicated
+      replicas: 1  # Set desired number of replicas
 
 networks:
   bckslash:

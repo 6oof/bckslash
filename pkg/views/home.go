@@ -14,13 +14,13 @@ import (
 type navigate int
 
 const (
-	serverStats navigate = iota
-	listProjects
-	addProject
-	serverInfo
-	editorSettings
-	proxySettings
-	help
+	navigateSystemMonitor navigate = iota
+	navigateProjects
+	navigateAddProject
+	navigateServerInfo
+	navigateEditorSettings
+	navigateProxySettings
+	navigateHelp
 	no
 )
 
@@ -35,19 +35,18 @@ func (i item) FilterValue() string { return i.title }
 
 type homeModel struct {
 	mainNav  list.Model
-	loading  bool
 	quitting bool
 }
 
 func InitHomeModel() homeModel {
 	itemsLeft := []list.Item{
-		item{title: "Projects", desc: "Open project list", navigation: listProjects},
-		item{title: "Add a project", desc: "Add a project", navigation: addProject},
-		item{title: "Server info", desc: "Server monitoring dashboard", navigation: serverInfo},
-		item{title: "Server Activity", desc: "Server activity monitoring (htop)", navigation: serverStats},
-		item{title: "Proxy settings", desc: "Edit traefik configurations", navigation: proxySettings},
-		item{title: "Editor settings", desc: "Pick prefered text editor to use when needed", navigation: editorSettings},
-		item{title: "Help", desc: "Basic information on bckslash", navigation: help},
+		item{title: "Projects", desc: "Open project list", navigation: navigateProjects},
+		item{title: "Add a project", desc: "Add a project", navigation: navigateAddProject},
+		item{title: "Server info", desc: "Server monitoring dashboard", navigation: navigateServerInfo},
+		item{title: "Server Activity", desc: "Server activity monitoring (htop)", navigation: navigateSystemMonitor},
+		item{title: "Proxy settings", desc: "Edit traefik configurations", navigation: navigateProxySettings},
+		item{title: "Editor settings", desc: "Pick prefered text editor to use when needed", navigation: navigateEditorSettings},
+		item{title: "Help", desc: "Basic information on bckslash", navigation: navigateHelp},
 	}
 
 	m := homeModel{
@@ -74,43 +73,52 @@ func (m homeModel) Init() tea.Cmd {
 
 func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+
 	case tea.KeyMsg:
 		switch {
+
 		case key.Matches(msg, constants.Keymap.Quit):
 			m.quitting = true
 			return m, tea.Quit
+
 		case key.Matches(msg, constants.Keymap.Enter):
 			switch m.mainNav.SelectedItem().(item).navigation {
-			case addProject:
+			case navigateAddProject:
 				apm := MakePeojectAddModel()
 				return apm, apm.Init()
-			case listProjects:
+
+			case navigateProjects:
 				return MakeProjectsModel(), commands.LoadProjectsCmd()
-			case serverStats:
+
+			case navigateSystemMonitor:
 				return MakeServerStatsModel().Update(commands.ExecStartMsg{})
-			case proxySettings:
+
+			case navigateProxySettings:
 				return m, commands.OpenEditor(path.Join("public", "traefik.yml"))
 
-			case serverInfo:
+			case navigateServerInfo:
 				return MakeServerInfoModel().Update(commands.ExecStartMsg{})
 
-			case help:
+			case navigateHelp:
 				return MakeServerHelpModel().Update(commands.ExecStartMsg{})
 
-			case editorSettings:
+			case navigateEditorSettings:
 				esm := MakeEditorSelectionModel()
 				return esm, esm.Init()
 
 			}
+
 		case key.Matches(msg, constants.Keymap.Back):
 			return m, nil
 
 		}
+
 	case commands.ProgramErrMsg:
 		return GoError(msg.Err, GoHome)
 
 	case commands.ExecFinishedMsg:
 		return GoSuccess(msg.Content, GoHome)
+
 	case tea.WindowSizeMsg:
 		constants.WinSize = msg
 	}
@@ -129,23 +137,19 @@ func (m homeModel) View() string {
 	}
 
 	// Set the width for the lists and render them
-	if m.loading {
-		return constants.Layout("home", "", "loading...")
-	} else {
-		m.mainNav.SetSize(constants.BodyHalfWidth(), constants.BodyHeight())
-		return constants.Layout(
-			"home",
-			constants.MainHelpString,
-			constants.HalfAndHalfComposition(
-				m.mainNav.View(),
-				constants.Card(
-					homeCard,
-					`\`,
-					constants.BodyHalfWidth(),
-					constants.BodyHeight(),
-				),
+	m.mainNav.SetSize(constants.BodyHalfWidth(), constants.BodyHeight())
+	return constants.Layout(
+		"home",
+		constants.MainHelpString,
+		constants.HalfAndHalfComposition(
+			m.mainNav.View(),
+			constants.Card(
+				homeCard,
+				`\`,
+				constants.BodyHalfWidth(),
+				constants.BodyHeight(),
 			),
-		)
+		),
+	)
 
-	}
 }
