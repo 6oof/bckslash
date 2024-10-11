@@ -2,7 +2,11 @@ package constants
 
 import "github.com/charmbracelet/bubbles/key"
 
-var HomeHelpString string = "↑/↓: navigate  • esc/q: back • /: filter • crtl+c: quit"
+//HOME KEYMAP
+
+var HomeHelpString string = "↑/↓: navigate • enter: select •  esc/q: back • /: filter • crtl+c: quit"
+
+var HomeAltHelpString string = "↑/↓: navigate • enter: select •  esc/q: back • /: filter"
 
 // Keymap struct and key bindings
 type homeKeymap struct {
@@ -29,5 +33,35 @@ var HomeKeymap = homeKeymap{
 	Quit: key.NewBinding(
 		key.WithKeys("ctrl+c"),
 		key.WithHelp("ctrl+c", "quit"),
+	),
+}
+
+//MODAL/VIEWPORT KEYMAP
+
+var ModalHelpString string = "↑/↓: navigate  • esc/q: back"
+
+type modalKeymap struct {
+	Back key.Binding
+}
+
+var ModalKeymap = modalKeymap{
+	Back: key.NewBinding(
+		key.WithKeys("esc", "q"),
+		key.WithHelp("esc/q", "back"),
+	),
+}
+
+//FORM KEYMAP
+
+var FormHelpString string = "esc/q: abort"
+
+type formKeymap struct {
+	Back key.Binding
+}
+
+var FormKeymap = formKeymap{
+	Back: key.NewBinding(
+		key.WithKeys("esc", "q"),
+		key.WithHelp("esc/q", "back"),
 	),
 }

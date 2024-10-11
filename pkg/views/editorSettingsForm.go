@@ -4,6 +4,7 @@ import (
 	"github.com/6oof/bckslash/pkg/constants"
 	"github.com/6oof/bckslash/pkg/helpers"
 
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 )
@@ -56,12 +57,13 @@ func (m EditorFormModel) Init() tea.Cmd {
 func (m EditorFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "esc", "q":
+		switch {
+		case key.Matches(msg, constants.FormKeymap.Back):
 			// Return to home on escape
 			homeModel := InitHomeModel()
 			return homeModel.Update(constants.WinSize)
 		}
+
 	case tea.WindowSizeMsg:
 		constants.WinSize = msg
 	}
@@ -97,8 +99,8 @@ func (m EditorFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m EditorFormModel) View() string {
 	if m.Err != nil {
-		return constants.Layout("Editor Selection", "q: Return home", constants.PadBodyContent.Render("Error: "+m.Err.Error()+"\n"))
+		return constants.Layout("Editor Selection", constants.FormHelpString, constants.PadBodyContent.Render("Error: "+m.Err.Error()+"\n"))
 	}
 
-	return constants.Layout("Editor Selection", "q: back", constants.PadBodyContent.Render(m.form.View()))
+	return constants.Layout("Editor Selection", constants.FormHelpString, constants.PadBodyContent.Render(m.form.View()))
 }

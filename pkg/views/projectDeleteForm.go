@@ -4,6 +4,7 @@ import (
 	"github.com/6oof/bckslash/pkg/commands"
 	"github.com/6oof/bckslash/pkg/constants"
 
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 )
@@ -48,9 +49,8 @@ func (m ProjectDeleteModel) Init() tea.Cmd {
 func (m ProjectDeleteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "esc", "q":
-			// Return to home on escape
+		switch {
+		case key.Matches(msg, constants.FormKeymap.Back):
 			return GoToProjects()
 		}
 	case tea.WindowSizeMsg:
@@ -64,12 +64,12 @@ func (m ProjectDeleteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.form.State == huh.StateCompleted {
+
 		if m.confirm {
 			m.loading = true
 			return MakeProjectsModel(), commands.DeleteProjectCommand(m.projectUuid)
 		}
 
-		// Return to home after saving
 		return GoToProjects()
 	}
 
@@ -78,12 +78,12 @@ func (m ProjectDeleteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m ProjectDeleteModel) View() string {
 	if m.loading {
-		return constants.Layout("Editor Selection", "q: Return home", "Loading...")
+		return constants.Layout("Delete Project", constants.FormHelpString, "Loading...")
 	}
 
 	if m.Err != nil {
-		return constants.Layout("Editor Selection", "q: Return home", "Error: "+m.Err.Error()+"\n")
+		return constants.Layout("Delete Project", constants.FormHelpString, "Error: "+m.Err.Error()+"\n")
 	}
 
-	return constants.Layout("Editor Selection", "q: back", constants.PadBodyContent.Render(m.form.View()))
+	return constants.Layout("Delete Project", constants.FormHelpString, constants.PadBodyContent.Render(m.form.View()))
 }

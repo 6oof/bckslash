@@ -28,7 +28,6 @@ const (
 type ProjectModel struct {
 	project      helpers.Project
 	shortGitData string
-	deployLog    string
 	Menu         list.Model
 	Loading      bool
 	dataLoading  bool
@@ -74,11 +73,10 @@ func (m ProjectModel) Init() tea.Cmd {
 func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "esc", "q":
-			return GoHome()
-		}
 		switch {
+		case key.Matches(msg, constants.HomeKeymap.Back):
+			return GoHome()
+
 		case key.Matches(msg, constants.HomeKeymap.Enter):
 			switch m.Menu.SelectedItem().(item).navigation {
 			case deleteProject:
@@ -143,12 +141,9 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ProjectModel) View() string {
-	if m.deployLog != "" {
-		return constants.Layout("Deploy log", "q: Return home", constants.PadBodyContent.Render(m.deployLog))
-	}
 	if m.Loading {
 		// Show the spinner while loading
-		return constants.Layout("Project", "q: Return home", constants.PadBodyContent.Render(m.Spinner.View()+" Loading..."))
+		return constants.Layout("Project", constants.HomeAltHelpString, constants.PadBodyContent.Render(m.Spinner.View()+" Loading..."))
 	}
 
 	crd := ""
@@ -160,7 +155,7 @@ func (m ProjectModel) View() string {
 
 	m.Menu.SetSize(constants.BodyHalfWidth(), constants.BodyHeight())
 	return constants.Layout(
-		"Server Info", "q: Return home",
+		"Project", constants.HomeAltHelpString,
 		lipgloss.PlaceHorizontal(
 			constants.BodyWidth(),
 			lipgloss.Left,

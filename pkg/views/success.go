@@ -2,6 +2,7 @@ package views
 
 import (
 	"github.com/6oof/bckslash/pkg/constants"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -41,8 +42,8 @@ func (m SuccessModle) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
+		switch {
+		case key.Matches(msg, constants.ModalKeymap.Back):
 			return m.ReturnMc()
 		}
 
@@ -65,5 +66,5 @@ func (m SuccessModle) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m SuccessModle) View() string {
-	return constants.Layout("SUCCESS", "q: Quit", m.Viewport.View())
+	return constants.Layout("SUCCESS", constants.ModalHelpString, m.Viewport.View())
 }

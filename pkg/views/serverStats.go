@@ -4,6 +4,7 @@ import (
 	"github.com/6oof/bckslash/pkg/commands"
 	"github.com/6oof/bckslash/pkg/constants"
 
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -21,8 +22,8 @@ func (m ServerStatsModel) Init() tea.Cmd {
 func (m ServerStatsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
+		switch {
+		case key.Matches(msg, constants.FormKeymap.Back):
 			return GoHome()
 		}
 	case tea.WindowSizeMsg:
@@ -42,5 +43,5 @@ func (m ServerStatsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ServerStatsModel) View() string {
-	return "Press 'q' to quit."
+	return constants.FormHelpString
 }

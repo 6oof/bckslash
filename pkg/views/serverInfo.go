@@ -4,6 +4,7 @@ import (
 	"github.com/6oof/bckslash/pkg/commands"
 	"github.com/6oof/bckslash/pkg/constants"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -34,8 +35,8 @@ func (m ServerInfoModel) Init() tea.Cmd {
 func (m ServerInfoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
+		switch {
+		case key.Matches(msg, constants.ModalKeymap.Back):
 			return GoHome()
 		}
 	case tea.WindowSizeMsg:
@@ -70,8 +71,8 @@ func (m ServerInfoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m ServerInfoModel) View() string {
 	if m.Loading {
 		// Show the spinner while loading
-		return constants.Layout("Server Info", "q: Return home", constants.PadBodyContent.Render(m.Spinner.View()+" Loading..."))
+		return constants.Layout("Server Info", constants.ModalHelpString, constants.PadBodyContent.Render(m.Spinner.View()+" Loading..."))
 	}
 
-	return constants.Layout("Server Info", "q: Return home", lipgloss.PlaceHorizontal(constants.BodyWidth(), lipgloss.Left, constants.PadBodyContent.Render(m.Content)))
+	return constants.Layout("Server Info", constants.ModalHelpString, lipgloss.PlaceHorizontal(constants.BodyWidth(), lipgloss.Left, constants.PadBodyContent.Render(m.Content)))
 }

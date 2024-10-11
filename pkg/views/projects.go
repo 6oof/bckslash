@@ -113,10 +113,10 @@ func (m projectsModel) View() string {
 
 	// Set the width for the lists and render them
 	if m.loading {
-		return constants.Layout("home", "", "loading...")
+		return constants.Layout("Projects", "", "loading...")
 	} else {
 		m.projectList.SetSize(constants.BodyWidth()/2, constants.BodyHeight())
-		return constants.Layout("home", constants.HomeHelpString, m.projectList.View())
+		return constants.Layout("Projects", constants.HomeAltHelpString, m.projectList.View())
 
 	}
 }

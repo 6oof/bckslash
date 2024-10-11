@@ -4,6 +4,7 @@ import (
 	"github.com/6oof/bckslash/pkg/commands"
 	"github.com/6oof/bckslash/pkg/constants"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
@@ -29,8 +30,8 @@ func (m ServerHelpModel) Init() tea.Cmd {
 func (m ServerHelpModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
+		switch {
+		case key.Matches(msg, constants.ModalKeymap.Back):
 			return GoHome()
 		}
 	case tea.WindowSizeMsg:
@@ -64,7 +65,7 @@ func (m ServerHelpModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ServerHelpModel) View() string {
-	return constants.Layout("Help", "↑/↓: Scroll • q: Quit", m.Viewport.View())
+	return constants.Layout("Help", constants.ModalHelpString, m.Viewport.View())
 }
 
 func (m ServerHelpModel) renderMarkdown(content string) string {

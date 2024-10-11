@@ -2,6 +2,7 @@ package views
 
 import (
 	"github.com/6oof/bckslash/pkg/constants"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -35,10 +36,11 @@ func (m ErrorModel) Init() tea.Cmd {
 func (m ErrorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
+		switch {
+		case key.Matches(msg, constants.ModalKeymap.Back):
 			return m.ReturnMc()
 		}
+
 	case tea.WindowSizeMsg:
 		constants.WinSize = msg
 		m.Viewport.Width = constants.BodyWidth()
@@ -58,5 +60,5 @@ func (m ErrorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ErrorModel) View() string {
-	return constants.Layout("ERROR", "q: Quit", m.Viewport.View())
+	return constants.Layout("ERROR", constants.ModalHelpString, m.Viewport.View())
 }
