@@ -87,8 +87,8 @@ func AddProjectFromCommand(title, projectType, repo, branch, serviceName, domain
 
 	if err := BcksDb().View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("projects"))
-		ip := b.Get([]byte(pro.UUID))
-		if ip != nil {
+		projectId := b.Get([]byte(pro.UUID))
+		if projectId != nil {
 			return errors.New("UUID collision, don't worry pelase re-try")
 		}
 		return nil
@@ -96,26 +96,27 @@ func AddProjectFromCommand(title, projectType, repo, branch, serviceName, domain
 		return err
 	}
 
-	// Define the path for the new project folder
-	projectDir := filepath.Join(constants.ProjectsDir, pro.UUID)
+	if !constants.Testing {
+		// Define the path for the new project folder
+		projectDir := filepath.Join(constants.ProjectsDir, pro.UUID)
 
-	// Run the Git command to clone the repository
-	c := exec.Command("git", "clone", "--depth", "1", "-b", pro.Branch, pro.Repository, projectDir)
+		// Run the Git command to clone the repository
+		c := exec.Command("git", "clone", "--depth", "1", "-b", pro.Branch, pro.Repository, projectDir)
 
-	var stdoutBuf, stderrBuf bytes.Buffer
-	c.Stdout = &stdoutBuf
-	c.Stderr = &stderrBuf
+		var stdoutBuf, stderrBuf bytes.Buffer
+		c.Stdout = &stdoutBuf
+		c.Stderr = &stderrBuf
 
-	// Execute the command and capture the output
-	if err := c.Run(); err != nil {
-		return fmt.Errorf("git clone failed: %v\nstdout: %s\nstderr: %s\n If you're sure the repository exists, please add the Deploy key (ssh)", err, stdoutBuf.String(), stderrBuf.String())
-	}
+		// Execute the command and capture the output
+		if err := c.Run(); err != nil {
+			return fmt.Errorf("git clone failed: %v\nstdout: %s\nstderr: %s\n If you're sure the repository exists, please add the Deploy key (ssh)", err, stdoutBuf.String(), stderrBuf.String())
+		}
 
-	_ = resolveEnvOnCreate(pro.UUID)
+		_ = resolveEnvOnCreate(pro.UUID)
 
-	// TODO create the .bckslash folder to store the merge dockerfile
-	if err := CreateTraefikFolder(pro.UUID, serviceName, domain); err != nil {
-		return fmt.Errorf("Failed to create traefik folder: %w", err)
+		if err := CreateTraefikFolder(pro.UUID, serviceName, domain); err != nil {
+			return fmt.Errorf("Failed to create traefik folder: %w", err)
+		}
 	}
 
 	if err := BcksDb().Update(func(tx *bolt.Tx) error {

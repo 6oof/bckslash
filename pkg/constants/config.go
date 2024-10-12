@@ -1,6 +1,7 @@
 package constants
 
-const (
+var (
 	ProjectsDir  = "projects"
 	DatabaseFile = "bckslash.db"
+	Testing      = false
 )
