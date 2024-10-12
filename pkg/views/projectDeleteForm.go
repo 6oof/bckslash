@@ -10,7 +10,7 @@ import (
 )
 
 type ProjectDeleteModel struct {
-	form        *huh.Form // huh.Form is just a tea.Model
+	form        *huh.Form
 	confirm     bool
 	projectUuid string
 	Err         error
@@ -18,7 +18,6 @@ type ProjectDeleteModel struct {
 }
 
 func MakePeojectDeleteModel(uuid string) (ProjectDeleteModel, error) {
-	// Load settings
 
 	fm := ProjectDeleteModel{
 		confirm:     false,
@@ -26,7 +25,6 @@ func MakePeojectDeleteModel(uuid string) (ProjectDeleteModel, error) {
 		projectUuid: uuid,
 	}
 
-	// Create form with editor options
 	fm.form = huh.NewForm(
 		huh.NewGroup(
 			huh.NewConfirm().

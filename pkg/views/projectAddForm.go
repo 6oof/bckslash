@@ -13,14 +13,12 @@ import (
 )
 
 type ProjectAddModel struct {
-	form    *huh.Form // huh.Form is just a tea.Model
+	form    *huh.Form
 	Err     error
 	loading bool
 }
 
 func MakePeojectAddModel() ProjectAddModel {
-	// Load settings
-
 	fm := ProjectAddModel{
 		Err: nil,
 	}
@@ -106,7 +104,6 @@ func (m ProjectAddModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, constants.FormKeymap.Back):
-			// Return to home on escape
 			homeModel := InitHomeModel()
 			return homeModel.Update(constants.WinSize)
 		}

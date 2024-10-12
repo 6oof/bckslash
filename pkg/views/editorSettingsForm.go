@@ -59,7 +59,6 @@ func (m EditorFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, constants.FormKeymap.Back):
-			// Return to home on escape
 			homeModel := InitHomeModel()
 			return homeModel.Update(constants.WinSize)
 		}
@@ -76,7 +75,6 @@ func (m EditorFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if m.form.State == huh.StateCompleted {
 		if m.confirm {
-			// Save the selected editor to settings
 			selectedEditor := m.form.GetString("editor")
 
 			err := helpers.SetEditorSetting(selectedEditor)
@@ -89,7 +87,6 @@ func (m EditorFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		}
 
-		// Return to home after saving
 		homeModel := InitHomeModel()
 		return homeModel.Update(constants.WinSize)
 	}

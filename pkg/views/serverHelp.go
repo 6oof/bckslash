@@ -69,7 +69,6 @@ func (m ServerHelpModel) View() string {
 }
 
 func (m ServerHelpModel) renderMarkdown(content string) string {
-	// Glamour rendering with a dark theme for markdown
 	out, err := glamour.Render(content, "tokyo-night")
 	if err != nil {
 		return "Error rendering markdown"

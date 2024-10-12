@@ -30,7 +30,6 @@ type projectsModel struct {
 func MakeProjectsModel() projectsModel {
 	itemsRight := []list.Item{}
 
-	// Populate the new items from the project list
 	for _, p := range projectsState {
 		itemsRight = append(itemsRight, project{title: p.Title, desc: p.UUID, uuid: p.UUID})
 	}
@@ -57,12 +56,10 @@ func GoToProjects() (tea.Model, tea.Cmd) {
 func (m *projectsModel) mapProjects(projects []helpers.Project) {
 	itemsRight := []list.Item{}
 
-	// Populate the new items from the project list
 	for _, p := range projects {
 		itemsRight = append(itemsRight, project{title: p.Title, desc: p.UUID, uuid: p.UUID})
 	}
 
-	// Set the new list of items in the right list
 	m.projectList.SetItems(itemsRight)
 }
 
@@ -111,7 +108,6 @@ func (m projectsModel) View() string {
 		return ""
 	}
 
-	// Set the width for the lists and render them
 	if m.loading {
 		return constants.Layout("Projects", "", "loading...")
 	} else {

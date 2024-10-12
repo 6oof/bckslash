@@ -53,8 +53,6 @@ var (
 )
 
 // Layout and rendering functions
-
-// Layout and rendering functions
 func BodyHeight() int {
 	// Ensure height does not exceed MaxHeight
 	if WinSize.Height > MaxHeight {

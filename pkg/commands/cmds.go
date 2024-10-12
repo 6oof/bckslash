@@ -70,7 +70,6 @@ func FetchProjectData(uuid string) tea.Cmd {
 
 func OpenHelpMd() tea.Cmd {
 	return func() tea.Msg {
-		// Read the content of the HELP.md file
 		content, err := os.ReadFile("public/HELP.md")
 		if err != nil {
 			return ProgramErrMsg{Err: err}
@@ -81,7 +80,6 @@ func OpenHelpMd() tea.Cmd {
 
 func OpenProjectBcksCompose(uuid string) tea.Cmd {
 	return func() tea.Msg {
-		// Read the content of the HELP.md file
 		content, err := os.ReadFile(path.Join(constants.ProjectsDir, uuid, "bckslash-compose.yaml"))
 		if err != nil {
 
@@ -96,7 +94,6 @@ func OpenProjectBcksCompose(uuid string) tea.Cmd {
 
 func OpenProjectBcksDeployScript(uuid string) tea.Cmd {
 	return func() tea.Msg {
-		// Read the content of the HELP.md file
 		content, err := os.ReadFile(path.Join(constants.ProjectsDir, uuid, "bckslash-deploy.sh"))
 		if err != nil {
 
@@ -119,11 +116,9 @@ func OpenProjectBcksDeployScript(uuid string) tea.Cmd {
 
 func ShowNeofetch() tea.Cmd {
 	return func() tea.Msg {
-		// Start a goroutine to run the command asynchronously
 		c := exec.Command("screenfetch") //nolint:gosec
 		out, err := c.Output()
 
-		// Return the result as a message when the command finishes
 		if err != nil {
 
 			return ProgramErrMsg{Err: err}
@@ -136,11 +131,9 @@ func ShowProjectStatus(uuid string) tea.Cmd {
 	return func() tea.Msg {
 		projectPath := path.Join(constants.ProjectsDir, uuid)
 
-		// Define styles for titles and content
 		titleStyle := lipgloss.NewStyle().Bold(true).Underline(true).Foreground(constants.HighlightColor)
 		contentStyle := lipgloss.NewStyle().PaddingLeft(2)
 
-		// Helper function to handle command execution and formatting output
 		formatOutput := func(title, output string, err error) string {
 			var sb strings.Builder
 			sb.WriteString(titleStyle.Render(title))
@@ -150,30 +143,22 @@ func ShowProjectStatus(uuid string) tea.Cmd {
 			} else {
 				sb.WriteString(contentStyle.Render(output))
 			}
-			sb.WriteString("\n\n") // Add uniform spacing between sections
+			sb.WriteString("\n\n")
 			return sb.String()
 		}
 
-		// Execute docker-compose ps command
-		cDocker := exec.Command("docker-compose", "-f", "bckslash-compose.yaml", "ps") //nolint:gosec
+		cDocker := exec.Command("docker-compose", "-f", "bckslash-compose.yaml", "ps")
 		cDocker.Dir = projectPath
-		dockerOut, dockerErr := cDocker.CombinedOutput() // Capture both stdout and stderr
-
-		// Execute git status command
+		dockerOut, dockerErr := cDocker.CombinedOutput()
 		cGit := exec.Command("git", "status")
 		cGit.Dir = projectPath
-		gitOut, gitErr := cGit.CombinedOutput() // Capture both stdout and stderr
-
-		// Combine the outputs and handle any errors
+		gitOut, gitErr := cGit.CombinedOutput()
 		var combinedOut strings.Builder
 
-		// Docker Compose ps output
 		combinedOut.WriteString(formatOutput("Docker Compose Status", string(dockerOut), dockerErr))
 
-		// Git status output
 		combinedOut.WriteString(formatOutput("Git Status", string(gitOut), gitErr))
 
-		// Return the combined output as a message
 		return ExecFinishedMsg{Content: combinedOut.String()}
 	}
 }
@@ -217,13 +202,10 @@ func DeleteProjectCommand(uuid string) tea.Cmd {
 
 func LoadProjectsCmd() tea.Cmd {
 	return func() tea.Msg {
-		// Load projects (e.g., from a file or database)
 		projects, err := helpers.GetProjects()
 		if err != nil {
-			// Handle error if needed
 			return ProgramErrMsg{Err: err}
 		}
-		// Return a message that the project list has been loaded
 		return ProjectListChangedMsg{ProjectList: projects}
 	}
 }
@@ -245,7 +227,6 @@ func TriggerDeploy(uuid string) tea.Cmd {
 		return tea.ExecProcess(c, func(err error) tea.Msg {
 
 			if err != nil {
-				// Handle both stderr content and the error
 				if stderrBuf.Len() > 0 {
 					return ProgramErrMsg{Err: fmt.Errorf("error: %v, stderr: %s", err, stderrBuf.String())}
 				}
@@ -271,12 +252,11 @@ func TriggerDeploy(uuid string) tea.Cmd {
 func ShellInProject(uuid string) tea.Cmd {
 	shell := os.Getenv("SHELL")
 	if shell == "" {
-		shell = "/bin/sh" // fallback to a default shell
+		shell = "/bin/sh"
 	}
 
-	// Create the command to echo the message and then start the shell
 	command := fmt.Sprintf("clear && echo '\nShell in project: %s\nuse Ctrl+D or type 'exit' to exit\n' && exec %s", uuid, shell)
-	c := exec.Command("sh", "-c", command) // Use "sh -c" to run the combined command
+	c := exec.Command("sh", "-c", command)
 	c.Dir = path.Join(constants.ProjectsDir, uuid)
 
 	return tea.ExecProcess(c, func(err error) tea.Msg {

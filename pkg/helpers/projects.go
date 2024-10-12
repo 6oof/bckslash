@@ -25,7 +25,6 @@ type Project struct {
 	Type       string `json:"type"`
 }
 
-// GetProjects reads the JSON file and unmarshals it into a slice of Project structs
 func GetProjects() ([]Project, error) {
 	var projects []Project
 
@@ -43,13 +42,11 @@ func GetProjects() ([]Project, error) {
 				return err
 			}
 
-			// Append the project to the slice correctly
 			projects = append(projects, curp)
 		}
 		return nil
 	})
 
-	// Return the result and any potential error
 	return projects, err
 }
 
@@ -136,7 +133,6 @@ func AddProjectFromCommand(title, projectType, repo, branch, serviceName, domain
 		return err
 	}
 
-	// If cloning succeeded, proceed with adding the project
 	return nil
 }
 
@@ -242,8 +238,6 @@ logs:
 }
 
 func resolveEnvOnCreate(uuid string) error {
-	// solve .env
-	// Open the projects file
 	envPath := path.Join(constants.ProjectsDir, uuid, ".env")
 	file, err := os.Open(envPath)
 	if err != nil {
@@ -336,7 +330,7 @@ func FetchProjectGitStatus(uuid string) (string, error) {
 	projectDir := filepath.Join(constants.ProjectsDir, uuid)
 
 	psCmd := exec.Command("git", "--no-pager", "log", "-1", "--format=%h %cd", "--date=iso")
-	psCmd.Dir = projectDir // Set the working directory to the project folder
+	psCmd.Dir = projectDir
 	psOutput, err := psCmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to check git log in %s: %v", projectDir, err)

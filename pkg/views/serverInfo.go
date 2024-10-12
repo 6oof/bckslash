@@ -17,7 +17,6 @@ type ServerInfoModel struct {
 }
 
 func MakeServerInfoModel() ServerInfoModel {
-	// Initialize the spinner with a default style
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 
@@ -28,7 +27,6 @@ func MakeServerInfoModel() ServerInfoModel {
 }
 
 func (m ServerInfoModel) Init() tea.Cmd {
-	// Start the spinner when the model is initialized
 	return nil
 }
 
@@ -58,7 +56,6 @@ func (m ServerInfoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case spinner.TickMsg:
 		if m.Loading {
-			// Update the spinner if loading is true
 			var cmd tea.Cmd
 			m.Spinner, cmd = m.Spinner.Update(msg)
 			return m, cmd
@@ -70,7 +67,6 @@ func (m ServerInfoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m ServerInfoModel) View() string {
 	if m.Loading {
-		// Show the spinner while loading
 		return constants.Layout("Server Info", constants.ModalHelpString, constants.PadBodyContent.Render(m.Spinner.View()+" Loading..."))
 	}
 
