@@ -13,7 +13,9 @@ require (
 	github.com/charmbracelet/ssh v0.0.0-20240725163421-eb71b85b27aa
 	github.com/charmbracelet/wish v1.4.3
 	github.com/lithammer/shortuuid/v4 v4.0.0
+	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (

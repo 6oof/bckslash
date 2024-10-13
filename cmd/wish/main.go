@@ -17,6 +17,8 @@ import (
 	"github.com/charmbracelet/wish/activeterm"
 	"github.com/charmbracelet/wish/bubbletea"
 	"github.com/charmbracelet/wish/logging"
+	"github.com/sirupsen/logrus"
+	"gopkg.in/natefinch/lumberjack.v2"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -27,6 +29,7 @@ const (
 )
 
 func main() {
+	configureLogging()
 
 	err := helpers.OpenDb("bckslash.db")
 	if err != nil {
@@ -38,7 +41,6 @@ func main() {
 		wish.WithAddress(net.JoinHostPort(host, port)),
 		wish.WithHostKeyPath(".ssh/id_ed25519"),
 
-		// Wish can allocate a PTY per user session.
 		ssh.AllocatePty(),
 
 		wish.WithMiddleware(
@@ -46,7 +48,7 @@ func main() {
 				return views.InitHomeModel(), []tea.ProgramOption{tea.WithAltScreen()}
 			}),
 			activeterm.Middleware(),
-			logging.Middleware(),
+			logging.MiddlewareWithLogger(logrus.StandardLogger()),
 		),
 	)
 	if err != nil {
@@ -72,4 +74,17 @@ func main() {
 	if err := srv.Shutdown(ctx); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
 		log.Error("Could not stop server", "error", err)
 	}
+}
+
+// Logger configuration
+func configureLogging() {
+	logrus.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+	})
+	logrus.SetOutput(&lumberjack.Logger{
+		Filename:   "ssh_server.log",
+		MaxSize:    5,
+		MaxBackups: 2,
+		Compress:   false,
+	})
 }

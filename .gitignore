@@ -3,3 +3,4 @@ debug.log
 bckslash.db
 /tmp/
 /.ssh/
+ssh_server.log
