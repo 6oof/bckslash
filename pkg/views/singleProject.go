@@ -18,7 +18,7 @@ const (
 	deleteProject navigate = iota
 	deployProject
 	viewStatusProject
-	viewDeployScriptProject
+	viewActionsProject
 	editEnvProject
 	editProxyProject
 	executeCommandProject
@@ -41,7 +41,7 @@ func MakeProjectModel() ProjectModel {
 		item{title: "Deploy", desc: "Trigger deployment", navigation: deployProject},
 		item{title: "Project status", desc: "View docker-compose ps and git status out", navigation: viewStatusProject},
 		item{title: "Execute commands", desc: "Opens a shell in project directory", navigation: executeCommandProject},
-		item{title: "View actions", desc: "View the bckslash-actions.sh file", navigation: viewDeployScriptProject},
+		item{title: "View actions", desc: "View the bckslash-actions.sh file", navigation: viewActionsProject},
 		item{title: "Domain", desc: "Edit reverse proxy labels", navigation: editProxyProject},
 		item{title: "Enviroment", desc: "Edit .env file", navigation: editEnvProject},
 		item{title: "Delete a project", desc: "You'll be asked to confirm", navigation: deleteProject},
@@ -82,17 +82,16 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case editEnvProject:
 				return m, commands.OpenEditor(path.Join(constants.ProjectsDir, m.project.UUID, ".env"))
 			case editProxyProject:
-				return m, commands.OpenEditor(path.Join(constants.ProjectsDir, m.project.UUID, ".bckslash", "bckslash-traefik-compose.yaml"))
+				return m, commands.ReadProjectDomain(m.project.UUID)
 			case executeCommandProject:
 				return m, commands.ShellInProject(m.project.UUID)
-			case viewDeployScriptProject:
+			case viewActionsProject:
 				m.Loading = true
-				return m, commands.OpenProjectBcksDeployScript(m.project.UUID)
+				return m, commands.ReadProjectActions(m.project.UUID)
 			case viewStatusProject:
-				m.Loading = true
-				return m, commands.ShowProjectStatus(m.project.UUID)
+				return m, commands.TriggerAction(m.project.UUID, "status")
 			case deployProject:
-				return m, commands.TriggerDeploy(m.project.UUID)
+				return m, commands.TriggerAction(m.project.UUID, "deploy")
 			}
 		}
 	case tea.WindowSizeMsg:
@@ -101,7 +100,7 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case commands.ProjectFoundMsg:
 		m.Loading = false
 		m.project = msg.Project
-		return m, commands.FetchProjectData(m.project.UUID)
+		return m, commands.FetchProjectGitStatus(m.project.UUID)
 
 	case commands.ProjectViewData:
 		m.shortGitData = msg.GitLog

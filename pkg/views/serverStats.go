@@ -30,7 +30,7 @@ func (m ServerStatsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		constants.WinSize = msg
 
 	case commands.ExecStartMsg:
-		return m, commands.OpenBTM()
+		return m, commands.OpenHtop()
 
 	case commands.ProgramErrMsg:
 		return GoError(msg.Err, GoHome)

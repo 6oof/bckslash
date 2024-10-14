@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	host = "127.0.0.1"
+	host = "localhost"
 	port = "23234"
 )
 
@@ -50,7 +50,7 @@ func main() {
 				return views.InitHomeModel(), []tea.ProgramOption{tea.WithAltScreen()}
 			}),
 			activeterm.Middleware(),
-			logging.Middleware(),
+			logging.MiddlewareWithLogger(logrus.StandardLogger()),
 		),
 	)
 	if err != nil {

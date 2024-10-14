@@ -1,20 +1,18 @@
 package commands
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path"
-	"strings"
 
 	"github.com/6oof/bckslash/pkg/constants"
 	"github.com/6oof/bckslash/pkg/helpers"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/wish"
 )
 
 func FetchProject(uuid string) tea.Cmd {
@@ -46,7 +44,7 @@ func OpenEditor(filepath string) tea.Cmd {
 	})
 }
 
-func OpenBTM() tea.Cmd {
+func OpenHtop() tea.Cmd {
 	c := exec.Command("htop", "--readonly") //nolint:gosec
 	return tea.ExecProcess(c, func(err error) tea.Msg {
 		if err != nil {
@@ -56,7 +54,7 @@ func OpenBTM() tea.Cmd {
 	})
 }
 
-func FetchProjectData(uuid string) tea.Cmd {
+func FetchProjectGitStatus(uuid string) tea.Cmd {
 	return func() tea.Msg {
 
 		status, err := helpers.FetchProjectGitStatus(uuid)
@@ -78,18 +76,40 @@ func OpenHelpMd() tea.Cmd {
 	}
 }
 
-func OpenProjectBcksDeployScript(uuid string) tea.Cmd {
+func ReadProjectActions(uuid string) tea.Cmd {
 	return func() tea.Msg {
-		content, err := os.ReadFile(path.Join(constants.ProjectsDir, uuid, "bckslash-deploy.sh"))
+		content, err := os.ReadFile(path.Join(constants.ProjectsDir, uuid, "bckslash-actions.sh"))
 		if err != nil {
 
 			if errors.Is(err, os.ErrNotExist) {
-				return ProgramErrMsg{Err: errors.New("bckslash-deploy.sh file not found! To deploy the project please follow the instructins in home>help")}
+				return ProgramErrMsg{Err: errors.New("bckslash-actions.sh file not found! To deploy the project please follow the instructins in home>help")}
 			}
 			return ProgramErrMsg{Err: err}
 		}
 
 		var cntnt string = "```bash\n" + string(content) + "```"
+
+		out, err := glamour.Render(cntnt, "tokyo-night")
+		if err != nil {
+			return ProgramErrMsg{Err: errors.New("Error rendering markdown")}
+		}
+
+		return ExecFinishedMsg{Content: out}
+	}
+}
+
+func ReadProjectDomain(uuid string) tea.Cmd {
+	return func() tea.Msg {
+		content, err := os.ReadFile(path.Join(constants.ProjectsDir, uuid, "bckslash.caddy"))
+		if err != nil {
+
+			if errors.Is(err, os.ErrNotExist) {
+				return ProgramErrMsg{Err: errors.New("bckslash.caddy file not found! To deploy the project please follow the instructins in home>help")}
+			}
+			return ProgramErrMsg{Err: err}
+		}
+
+		var cntnt string = "```caddyfile\n" + string(content) + "```"
 
 		out, err := glamour.Render(cntnt, "tokyo-night")
 		if err != nil {
@@ -110,42 +130,6 @@ func ShowNeofetch() tea.Cmd {
 			return ProgramErrMsg{Err: err}
 		}
 		return ExecFinishedMsg{Content: string(out)}
-	}
-}
-
-func ShowProjectStatus(uuid string) tea.Cmd {
-	return func() tea.Msg {
-		projectPath := path.Join(constants.ProjectsDir, uuid)
-
-		titleStyle := lipgloss.NewStyle().Bold(true).Underline(true).Foreground(constants.HighlightColor)
-		contentStyle := lipgloss.NewStyle().PaddingLeft(2)
-
-		formatOutput := func(title, output string, err error) string {
-			var sb strings.Builder
-			sb.WriteString(titleStyle.Render(title))
-			sb.WriteString("\n\n")
-			if err != nil {
-				sb.WriteString(contentStyle.Render(fmt.Sprintf("Error: %s\n%s\n", err.Error(), output)))
-			} else {
-				sb.WriteString(contentStyle.Render(output))
-			}
-			sb.WriteString("\n\n")
-			return sb.String()
-		}
-
-		cDocker := exec.Command("docker-compose", "-f", "bckslash-compose.yaml", "ps")
-		cDocker.Dir = projectPath
-		dockerOut, dockerErr := cDocker.CombinedOutput()
-		cGit := exec.Command("git", "status")
-		cGit.Dir = projectPath
-		gitOut, gitErr := cGit.CombinedOutput()
-		var combinedOut strings.Builder
-
-		combinedOut.WriteString(formatOutput("Docker Compose Status", string(dockerOut), dockerErr))
-
-		combinedOut.WriteString(formatOutput("Git Status", string(gitOut), gitErr))
-
-		return ExecFinishedMsg{Content: combinedOut.String()}
 	}
 }
 
@@ -196,7 +180,7 @@ func LoadProjectsCmd() tea.Cmd {
 	}
 }
 
-func TriggerDeploy(uuid string) tea.Cmd {
+func TriggerAction(uuid, action string) tea.Cmd {
 	deployType, err := helpers.DeployCheck(uuid, "projects")
 	if err != nil {
 		return func() tea.Msg {
@@ -212,14 +196,21 @@ func TriggerDeploy(uuid string) tea.Cmd {
 
 	// If we reach here, we are ready to execute the deploy script.
 	pdir := path.Join(constants.ProjectsDir, uuid)
-	cmd := wish.Command(constants.WishSession, "/bin/sh", "bckslash-actions.sh", "deploy")
-	cmd.SetDir(pdir)
+	cmd := exec.Command("/bin/sh", "bckslash-actions.sh", action)
+	cmd.Dir = pdir
 
-	return tea.Exec(cmd, func(err error) tea.Msg {
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout = &stdoutBuf
+	cmd.Stderr = &stderrBuf
+
+	return tea.ExecProcess(cmd, func(err error) tea.Msg {
 		if err != nil {
-			return ProgramErrMsg{Err: err}
+			if stderrBuf.Len() > 0 {
+				return ProgramErrMsg{Err: fmt.Errorf(" %v\nOutput: %s", err, stderrBuf.String())}
+			}
+			return ProgramErrMsg{Err: err} // fallback to the original error
 		}
-		return ExecFinishedMsg{}
+		return ExecFinishedMsg{Content: stdoutBuf.String()}
 	})
 }
 
