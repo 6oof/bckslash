@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -15,6 +14,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/wish"
 )
 
 func FetchProject(uuid string) tea.Cmd {
@@ -212,18 +212,12 @@ func TriggerDeploy(uuid string) tea.Cmd {
 
 	// If we reach here, we are ready to execute the deploy script.
 	pdir := path.Join(constants.ProjectsDir, uuid)
-	cmd := exec.Command("/bin/sh", "bckslash-actions.sh", "deploy")
-	cmd.Dir = pdir
+	cmd := wish.Command(constants.WishSession, "/bin/sh", "bckslash-actions.sh", "deploy")
+	cmd.SetDir(pdir)
 
-	var stderrBuf bytes.Buffer
-	cmd.Stderr = &stderrBuf
-
-	return tea.ExecProcess(cmd, func(err error) tea.Msg {
+	return tea.Exec(cmd, func(err error) tea.Msg {
 		if err != nil {
-			if stderrBuf.Len() > 0 {
-				return ProgramErrMsg{Err: fmt.Errorf("error: %v, stderr: %s", err, stderrBuf.String())}
-			}
-			return ProgramErrMsg{Err: err} // fallback to the original error
+			return ProgramErrMsg{Err: err}
 		}
 		return ExecFinishedMsg{}
 	})

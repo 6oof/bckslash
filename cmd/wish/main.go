@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/6oof/bckslash/pkg/constants"
 	"github.com/6oof/bckslash/pkg/helpers"
 	"github.com/6oof/bckslash/pkg/views"
 	"github.com/charmbracelet/log"
@@ -24,7 +25,7 @@ import (
 )
 
 const (
-	host = "localhost"
+	host = "127.0.0.1"
 	port = "23234"
 )
 
@@ -45,10 +46,11 @@ func main() {
 
 		wish.WithMiddleware(
 			bubbletea.Middleware(func(sess ssh.Session) (tea.Model, []tea.ProgramOption) {
+				constants.WishSession = sess
 				return views.InitHomeModel(), []tea.ProgramOption{tea.WithAltScreen()}
 			}),
 			activeterm.Middleware(),
-			logging.MiddlewareWithLogger(logrus.StandardLogger()),
+			logging.Middleware(),
 		),
 	)
 	if err != nil {
