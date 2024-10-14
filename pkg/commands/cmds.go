@@ -78,20 +78,6 @@ func OpenHelpMd() tea.Cmd {
 	}
 }
 
-func OpenProjectBcksCompose(uuid string) tea.Cmd {
-	return func() tea.Msg {
-		content, err := os.ReadFile(path.Join(constants.ProjectsDir, uuid, "bckslash-compose.yaml"))
-		if err != nil {
-
-			if errors.Is(err, os.ErrNotExist) {
-				return ProgramErrMsg{Err: errors.New("Bckslash compose file not found! To deploy the project please follow the instructins in home>help")}
-			}
-			return ProgramErrMsg{Err: err}
-		}
-		return ExecFinishedMsg{Content: string(content)}
-	}
-}
-
 func OpenProjectBcksDeployScript(uuid string) tea.Cmd {
 	return func() tea.Msg {
 		content, err := os.ReadFile(path.Join(constants.ProjectsDir, uuid, "bckslash-deploy.sh"))
@@ -163,9 +149,9 @@ func ShowProjectStatus(uuid string) tea.Cmd {
 	}
 }
 
-func AddProjectCommand(title, projectType, repo, branch, serviceName, domain string) tea.Cmd {
+func AddProjectCommand(title, projectType, repo, branch string) tea.Cmd {
 	return func() tea.Msg {
-		err := helpers.AddProjectFromCommand(title, projectType, repo, branch, serviceName, domain)
+		err := helpers.AddProjectFromCommand(title, projectType, repo, branch)
 		if err != nil {
 			return ProgramErrMsg{Err: err}
 		}
@@ -211,42 +197,36 @@ func LoadProjectsCmd() tea.Cmd {
 }
 
 func TriggerDeploy(uuid string) tea.Cmd {
-
 	deployType, err := helpers.DeployCheck(uuid, "projects")
-
-	depSh := func() tea.Cmd {
-		pdir := path.Join(constants.ProjectsDir, uuid)
-
-		c := exec.Command("/bin/sh", "bckslash-deploy.sh")
-		c.Dir = pdir
-
-		var stdoutBuf, stderrBuf bytes.Buffer
-		c.Stdout = &stdoutBuf
-		c.Stderr = &stderrBuf
-
-		return tea.ExecProcess(c, func(err error) tea.Msg {
-
-			if err != nil {
-				if stderrBuf.Len() > 0 {
-					return ProgramErrMsg{Err: fmt.Errorf("error: %v, stderr: %s", err, stderrBuf.String())}
-				}
-			}
-
-			return ExecFinishedMsg{Content: stdoutBuf.String()}
-		})
-	}
-
-	switch deployType {
-	case helpers.UnDeployable:
-		return func() tea.Msg { return ProgramErrMsg{Err: err} }
-	case helpers.DeploySh:
-		return depSh()
-	default:
+	if err != nil {
 		return func() tea.Msg {
-			return ProgramErrMsg{Err: errors.New("Project failed the minimum requirements for deployment")}
+			return ProgramErrMsg{Err: err}
 		}
 	}
 
+	if deployType == helpers.UnDeployable {
+		return func() tea.Msg {
+			return ProgramErrMsg{Err: errors.New("project is undeployable, make sure you satisfy the minimum deploy requirements in home>help")}
+		}
+	}
+
+	// If we reach here, we are ready to execute the deploy script.
+	pdir := path.Join(constants.ProjectsDir, uuid)
+	cmd := exec.Command("/bin/sh", "bckslash-actions.sh", "deploy")
+	cmd.Dir = pdir
+
+	var stderrBuf bytes.Buffer
+	cmd.Stderr = &stderrBuf
+
+	return tea.ExecProcess(cmd, func(err error) tea.Msg {
+		if err != nil {
+			if stderrBuf.Len() > 0 {
+				return ProgramErrMsg{Err: fmt.Errorf("error: %v, stderr: %s", err, stderrBuf.String())}
+			}
+			return ProgramErrMsg{Err: err} // fallback to the original error
+		}
+		return ExecFinishedMsg{}
+	})
 }
 
 func ShellInProject(uuid string) tea.Cmd {

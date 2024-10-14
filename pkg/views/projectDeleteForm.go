@@ -29,7 +29,6 @@ func MakePeojectDeleteModel(uuid string) (ProjectDeleteModel, error) {
 		huh.NewGroup(
 			huh.NewConfirm().
 				Key("confirm").
-				Description("this action delets the project from the list but does not remove any directories or stop docker processes").
 				Title("Are you sure you want to delte project " + fm.projectUuid).
 				Affirmative("Yes!").
 				Negative("No.").
@@ -75,6 +74,8 @@ func (m ProjectDeleteModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ProjectDeleteModel) View() string {
+	formDescription := "this action delets the project from the list and removes thre project folder but does not stop any processes.\nMake sure to define and run the destroy action before yon delete the project to avoid doing teardown mannally.\n\n"
+
 	if m.loading {
 		return constants.Layout("Delete Project", constants.FormHelpString, "Loading...")
 	}
@@ -83,5 +84,5 @@ func (m ProjectDeleteModel) View() string {
 		return constants.Layout("Delete Project", constants.FormHelpString, "Error: "+m.Err.Error()+"\n")
 	}
 
-	return constants.Layout("Delete Project", constants.FormHelpString, constants.PadBodyContent.Render(m.form.View()))
+	return constants.Layout("Delete Project", constants.FormHelpString, constants.PadBodyContent.Render(formDescription+m.form.View()))
 }

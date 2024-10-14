@@ -15,7 +15,7 @@ const (
 
 func DeployCheck(uuid, projectsDir string) (deployType, error) {
 	pdir := path.Join(projectsDir, uuid)
-	bcksDeploy := path.Join(pdir, "bcks-deploy.sh")
+	bcksDeploy := path.Join(pdir, "bckslash-actions.sh")
 
 	_, err := os.Open(bcksDeploy)
 	if errors.Is(err, os.ErrNotExist) {

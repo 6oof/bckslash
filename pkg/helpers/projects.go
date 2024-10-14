@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html/template"
 	"io"
 	"os"
 	"os/exec"
@@ -73,7 +72,7 @@ func GetProject(uuid string) (Project, error) {
 }
 
 // AddProjectFromCommand clones the repository and adds the project
-func AddProjectFromCommand(title, projectType, repo, branch, serviceName, domain string) error {
+func AddProjectFromCommand(title, projectType, repo, branch string) error {
 	pro := Project{
 		Title:      title,
 		UUID:       shortuuid.New(),
@@ -111,9 +110,6 @@ func AddProjectFromCommand(title, projectType, repo, branch, serviceName, domain
 
 		_ = resolveEnvOnCreate(pro.UUID)
 
-		if err := CreateTraefikFolder(pro.UUID, serviceName, domain); err != nil {
-			return fmt.Errorf("Failed to create traefik folder: %w", err)
-		}
 	}
 
 	if err := BcksDb().Update(func(tx *bolt.Tx) error {
@@ -131,107 +127,6 @@ func AddProjectFromCommand(title, projectType, repo, branch, serviceName, domain
 		return nil
 	}); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func CreateTraefikFolder(uuid, service, domain string) error {
-	// Define the path for the .bckslash folder
-	bckslashDir := filepath.Join(constants.ProjectsDir, uuid, ".bckslash")
-
-	// Create the .bckslash directory
-	if err := os.MkdirAll(bckslashDir, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create .bckslash directory: %w", err)
-	}
-
-	// Create .gitignore file
-	gitignorePath := filepath.Join(bckslashDir, ".gitignore")
-	if err := os.WriteFile(gitignorePath, []byte("*\n"), 0644); err != nil {
-		return fmt.Errorf("failed to create .gitignore file: %w", err)
-	}
-
-	// Create bckslash-traefik-compose.yaml file with labels
-	composePath := filepath.Join(bckslashDir, "bckslash-traefik-compose.yaml")
-
-	composeTemplate := `services:
-  {{ .Service }}:
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.{{ .Service }}.rule=Host(` + "`{{ .Domain }}`" + `)"
-      - "traefik.http.routers.{{ .Service }}.entrypoints=websecure"
-      - "traefik.http.routers.{{ .Service }}.middlewares=https-redirect"
-      - "traefik.http.services.{{ .Service }}.loadbalancer.server.port=80"
-      - "traefik.http.routers.{{ .Service }}-www.rule=Host(` + "`www.{{ .Domain }}`" + `)"
-      - "traefik.http.routers.{{ .Service }}-www.entrypoints=websecure"
-      - "traefik.http.routers.{{ .Service }}-www.middlewares=https-redirect"
-      - "traefik.http.routers.{{ .Service }}-www.service={{ .Service }}"
-      - "traefik.http.middlewares.redirect-to-https.redirectScheme.scheme=https"
-      - "traefik.http.middlewares.redirect-to-https.redirectScheme.permanent=true"
-      - "traefik.http.routers.{{ .Service }}.tls=true"
-      - "traefik.http.routers.{{ .Service }}-www.tls=true"
-
-      # Adjust rate limiting as needed. Values are requests/s
-      - "traefik.http.middlewares.ratelimit.rateLimit.average=100"
-      - "traefik.http.middlewares.ratelimit.rateLimit.burst=50"
-      - "traefik.http.routers.{{ .Service }}.middlewares=ratelimit"
-      - "traefik.http.routers.{{ .Service }}-www.middlewares=ratelimit"
-
-      # Uncomment the following lines to enable basic authentication
-      # Replace 'user' with your desired username and 'hashedPassword' with a valid bcrypt hash
-      # - "traefik.http.routers.{{ .Service }}.middlewares=auth"
-      # - "traefik.http.middlewares.auth.basicAuth.users=user:hashedPassword"
-
-    networks:
-      - bckslash
-
-    deploy:
-	  mode: replicated
-      replicas: 1  # Set desired number of replicas
-
-networks:
-  bckslash:
-    external: true
-
-# Define the middleware for HTTPS redirection
-middlewares:
-  https-redirect:
-    redirectScheme:
-      scheme: "https"
-      permanent: true
-
-# Global logging configuration for all services
-logging:
-  driver: "json-file"
-  options:
-    max-size: "10m"
-    max-file: "3"
-
-# Logging configuration
-# Logs will be stored in the .bckslash directory of the project
-# Base path: ./projects/{{ .UUID }}/.bckslash/bckslash.log
-logs:
-  filePath: ./.bckslash/bckslash.log
-  level: ERROR
-`
-
-	tmpl, err := template.New("compose").Parse(composeTemplate)
-	if err != nil {
-		return fmt.Errorf("failed to parse compose template: %w", err)
-	}
-
-	file, err := os.Create(composePath)
-	if err != nil {
-		return fmt.Errorf("failed to create bckslash-traefik-compose.yaml file: %w", err)
-	}
-	defer file.Close()
-
-	if err := tmpl.Execute(file, map[string]string{
-		"Service": service,
-		"Domain":  domain,
-		"UUID":    uuid,
-	}); err != nil {
-		return fmt.Errorf("failed to execute compose template: %w", err)
 	}
 
 	return nil
@@ -282,32 +177,8 @@ func RemoveProject(uuid string) error {
 
 	// Define the path for the project folder
 	projectDir := filepath.Join(constants.ProjectsDir, uuid)
-	dockerComposeFile := filepath.Join(projectDir, "bckslash-compose.yml")
 
-	// Step 0: Check if Docker Compose is running
-	// Check if the docker-compose.yml file exists
-	if _, err := os.Stat(dockerComposeFile); !os.IsNotExist(err) {
-		psCmd := exec.Command("docker-compose", "-f", dockerComposeFile, "ps", "-q")
-		psCmd.Dir = projectDir // Set the working directory to the project folder
-		psOutput, err := psCmd.Output()
-		if err != nil {
-			return fmt.Errorf("failed to check Docker Compose status in %s: %v", projectDir, err)
-		}
-
-		if len(psOutput) > 0 {
-			// Containers are running, stop them
-			dockerCmd := exec.Command("docker-compose", "-f", dockerComposeFile, "down")
-			dockerCmd.Dir = projectDir
-			if err := dockerCmd.Run(); err != nil {
-				return fmt.Errorf("failed to stop Docker Compose in %s: %v", projectDir, err)
-			}
-		} else {
-			// No containers are running
-			fmt.Printf("No running Docker containers found in %s\n", projectDir)
-		}
-	}
-
-	// Step 2: Remove the project folder
+	// Remove the project folder
 	if err := os.RemoveAll(projectDir); err != nil {
 		return fmt.Errorf("failed to remove project folder %s: %v", projectDir, err)
 	}

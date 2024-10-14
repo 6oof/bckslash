@@ -1,0 +1,7 @@
+{
+    email your-email@example.com
+    auto_https on
+}
+
+# Include project-specific Caddyfiles
+include /home/bckslash/bckslash/projects/*/bckslash.caddy

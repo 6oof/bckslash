@@ -16,13 +16,12 @@ import (
 
 const (
 	deleteProject navigate = iota
-	deploy
-	viewCompose
-	viewStatus
-	viewDeployScript
-	editEnv
-	editProxy
-	executeCommand
+	deployProject
+	viewStatusProject
+	viewDeployScriptProject
+	editEnvProject
+	editProxyProject
+	executeCommandProject
 )
 
 type ProjectModel struct {
@@ -39,13 +38,12 @@ func MakeProjectModel() ProjectModel {
 	s.Spinner = spinner.Dot
 
 	menuItems := []list.Item{
-		item{title: "Deploy", desc: "Trigger deployment", navigation: deploy},
-		item{title: "Project status", desc: "View docker-compose ps and git status out", navigation: viewStatus},
-		item{title: "Execute commands", desc: "Opens a shell in project directory", navigation: executeCommand},
-		item{title: "View deploy script", desc: "View the bckslash-deploy.sh file", navigation: viewDeployScript},
-		item{title: "View compose", desc: "View the docker compose yaml", navigation: viewCompose},
-		item{title: "Domain", desc: "Edit reverse proxy labels", navigation: editProxy},
-		item{title: "Enviroment", desc: "Edit .env file", navigation: editEnv},
+		item{title: "Deploy", desc: "Trigger deployment", navigation: deployProject},
+		item{title: "Project status", desc: "View docker-compose ps and git status out", navigation: viewStatusProject},
+		item{title: "Execute commands", desc: "Opens a shell in project directory", navigation: executeCommandProject},
+		item{title: "View actions", desc: "View the bckslash-actions.sh file", navigation: viewDeployScriptProject},
+		item{title: "Domain", desc: "Edit reverse proxy labels", navigation: editProxyProject},
+		item{title: "Enviroment", desc: "Edit .env file", navigation: editEnvProject},
 		item{title: "Delete a project", desc: "You'll be asked to confirm", navigation: deleteProject},
 	}
 
@@ -81,22 +79,19 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				pdm, _ := MakePeojectDeleteModel(m.project.UUID)
 				pdm.Init()
 				return pdm, nil
-			case editEnv:
+			case editEnvProject:
 				return m, commands.OpenEditor(path.Join(constants.ProjectsDir, m.project.UUID, ".env"))
-			case editProxy:
+			case editProxyProject:
 				return m, commands.OpenEditor(path.Join(constants.ProjectsDir, m.project.UUID, ".bckslash", "bckslash-traefik-compose.yaml"))
-			case executeCommand:
+			case executeCommandProject:
 				return m, commands.ShellInProject(m.project.UUID)
-			case viewDeployScript:
+			case viewDeployScriptProject:
 				m.Loading = true
 				return m, commands.OpenProjectBcksDeployScript(m.project.UUID)
-			case viewCompose:
-				m.Loading = true
-				return m, commands.OpenProjectBcksCompose(m.project.UUID)
-			case viewStatus:
+			case viewStatusProject:
 				m.Loading = true
 				return m, commands.ShowProjectStatus(m.project.UUID)
-			case deploy:
+			case deployProject:
 				return m, commands.TriggerDeploy(m.project.UUID)
 			}
 		}
@@ -146,7 +141,7 @@ func (m ProjectModel) View() string {
 	if m.dataLoading {
 		crd = m.Spinner.View() + " Loading..."
 	} else {
-		crd = "UUID:\n " + m.project.UUID + " \n\nActive git commit:\n" + m.shortGitData
+		crd = "Title:\n " + m.project.Title + " \n\nUUID:\n " + m.project.UUID + " \n\nActive git commit:\n" + m.shortGitData
 	}
 
 	m.Menu.SetSize(constants.BodyHalfWidth(), constants.BodyHeight())

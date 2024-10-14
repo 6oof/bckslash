@@ -1,0 +1,14 @@
+[Unit]
+Description=Caddy Web Server
+Documentation=https://caddyserver.com/docs/
+After=network.target
+
+[Service]
+User=bckslash
+Group=bckslash
+ExecStart=/usr/bin/caddy run --config /home/bckslash/caddy/Caddyfile --adapter caddyfile
+ExecReload=/usr/bin/caddy reload --config /home/bckslash/caddy/Caddyfile --adapter caddyfile
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

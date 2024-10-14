@@ -29,7 +29,7 @@ func setupTestDb(t *testing.T) string {
 }
 
 func addProjectFormComandSuccess(name string) error {
-	err := AddProjectFromCommand(name, "test", "https://github.com/6oof/bckslash.git", "main", "test", "test.com")
+	err := AddProjectFromCommand(name, "test", "https://github.com/6oof/bckslash.git", "main")
 
 	return err
 }
@@ -62,7 +62,7 @@ func TestAddProjectFormCommandWithGitFail(t *testing.T) {
 	setupTestDb(t)
 	constants.Testing = false
 
-	err := AddProjectFromCommand("fails", "test", "https://github.com/6oof/bcfail.git", "main", "test", "test.com")
+	err := AddProjectFromCommand("fails", "test", "https://github.com/6oof/bcfail.git", "main")
 
 	assert.Error(t, err, "bad repository project creation didn't fail")
 

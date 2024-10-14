@@ -1,0 +1,9 @@
+# Redirect www to non-www
+www.project1.example.com {
+    redir https://project1.example.com{uri} 301
+}
+
+# Main site configuration with automatic HTTPS
+project1.example.com {
+    reverse_proxy localhost:8080
+}
