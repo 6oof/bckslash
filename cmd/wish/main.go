@@ -46,8 +46,11 @@ func main() {
 
 		wish.WithMiddleware(
 			bubbletea.Middleware(func(sess ssh.Session) (tea.Model, []tea.ProgramOption) {
+
 				constants.WishSession = sess
-				return views.InitHomeModel(), []tea.ProgramOption{tea.WithAltScreen()}
+
+				return views.InitHomeModel(),
+					[]tea.ProgramOption{tea.WithAltScreen()}
 			}),
 			activeterm.Middleware(),
 			logging.MiddlewareWithLogger(logrus.StandardLogger()),

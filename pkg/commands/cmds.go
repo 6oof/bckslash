@@ -7,12 +7,14 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 
 	"github.com/6oof/bckslash/pkg/constants"
 	"github.com/6oof/bckslash/pkg/helpers"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
+	"github.com/charmbracelet/wish"
 )
 
 func FetchProject(uuid string) tea.Cmd {
@@ -194,9 +196,24 @@ func TriggerAction(uuid, action string) tea.Cmd {
 		}
 	}
 
-	// If we reach here, we are ready to execute the deploy script.
+	scriptPath := path.Join(constants.ProjectsDir, uuid, "bckslash-actions.sh")
+
+	scriptContent, err := os.ReadFile(scriptPath)
+	if err != nil {
+		return func() tea.Msg {
+			return ProgramErrMsg{Err: fmt.Errorf("could not read script: %v", err)}
+		}
+	}
+
+	if strings.Contains(string(scriptContent), "sudo") {
+		return func() tea.Msg {
+			return ProgramErrMsg{Err: errors.New("Error: 'sudo' is not allowed in the action script.")}
+		}
+	}
+
+	// If we reach here, we are ready to execute the action.
 	pdir := path.Join(constants.ProjectsDir, uuid)
-	cmd := exec.Command("/bin/sh", "bckslash-actions.sh", action)
+	cmd := exec.Command("/bin/sh", "-c", "bckslash-actions.sh", action)
 	cmd.Dir = pdir
 
 	var stdoutBuf, stderrBuf bytes.Buffer
@@ -214,20 +231,35 @@ func TriggerAction(uuid, action string) tea.Cmd {
 	})
 }
 
-func ShellInProject(uuid string) tea.Cmd {
-	shell := os.Getenv("SHELL")
-	if shell == "" {
-		shell = "/bin/sh"
+func CommandInProject(uuid string, command string) tea.Cmd {
+	cj := wish.Command(constants.WishSession, "bash")
+	if err := cj.Run(); err != nil {
+		wish.Fatalln(constants.WishSession, err)
 	}
 
-	command := fmt.Sprintf("clear && echo '\nShell in project: %s\nuse Ctrl+D or type 'exit' to exit\n' && exec %s", uuid, shell)
-	c := exec.Command("sh", "-c", command)
-	c.Dir = path.Join(constants.ProjectsDir, uuid)
-
-	return tea.ExecProcess(c, func(err error) tea.Msg {
-		if err != nil {
-			return ExecFinishedMsg{}
+	// Check if the command contains "sudo"
+	if strings.Contains(command, "sudo") {
+		return func() tea.Msg {
+			return ProgramErrMsg{Err: errors.New("Error: 'sudo' is not allowed in this shell.")}
 		}
-		return ExecFinishedMsg{}
+	}
+
+	// Create the command
+	cmd := exec.Command("/bin/sh", "-c", command) // Use /bin/sh to run the command as a shell command
+	cmd.Dir = path.Join(constants.ProjectsDir, uuid)
+
+	// Create buffers to capture output
+	var stdoutBuf, stderrBuf bytes.Buffer
+	cmd.Stdout = &stdoutBuf
+	cmd.Stderr = &stderrBuf
+
+	// Execute the command
+	return tea.ExecProcess(cmd, func(err error) tea.Msg {
+		if err != nil {
+			return ProgramErrMsg{Err: fmt.Errorf("error executing command: %v\nStderr: %s", err, stderrBuf.String())}
+		}
+
+		// Return the captured stdout content
+		return ExecFinishedMsg{Content: stdoutBuf.String()}
 	})
 }
