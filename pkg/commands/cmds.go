@@ -14,7 +14,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
-	"github.com/charmbracelet/wish"
 )
 
 func FetchProject(uuid string) tea.Cmd {
@@ -232,17 +231,12 @@ func TriggerAction(uuid, action string) tea.Cmd {
 }
 
 func CommandInProject(uuid string, command string) tea.Cmd {
-	cj := wish.Command(constants.WishSession, "bash")
-	if err := cj.Run(); err != nil {
-		wish.Fatalln(constants.WishSession, err)
-	}
-
-	// Check if the command contains "sudo"
-	if strings.Contains(command, "sudo") {
-		return func() tea.Msg {
-			return ProgramErrMsg{Err: errors.New("Error: 'sudo' is not allowed in this shell.")}
-		}
-	}
+	// // Check if the command contains "sudo"
+	// if strings.Contains(command, "sudo") {
+	// 	return func() tea.Msg {
+	// 		return ProgramErrMsg{Err: errors.New("Error: 'sudo' is not allowed in this shell.")}
+	// 	}
+	// }
 
 	// Create the command
 	cmd := exec.Command("/bin/sh", "-c", command) // Use /bin/sh to run the command as a shell command
