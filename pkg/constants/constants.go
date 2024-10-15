@@ -3,7 +3,6 @@ package constants
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/ssh"
 )
 
 // Constants and layout values
@@ -15,7 +14,6 @@ const (
 )
 
 var WinSize tea.WindowSizeMsg
-var WishSession ssh.Session
 
 // Color definitions
 var (

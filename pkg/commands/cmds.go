@@ -14,7 +14,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
-	"github.com/charmbracelet/wish"
 )
 
 func FetchProject(uuid string) tea.Cmd {
@@ -231,23 +230,20 @@ func TriggerAction(uuid, action string) tea.Cmd {
 	})
 }
 
-func CommandInProject(uuid string, command string) tea.Cmd {
-	// // Check if the command contains "sudo"
-	// if strings.Contains(command, "sudo") {
-	// 	return func() tea.Msg {
-	// 		return ProgramErrMsg{Err: errors.New("Error: 'sudo' is not allowed in this shell.")}
-	// 	}
-	// }
+func CommandInProject(uuid string) tea.Cmd {
+	shell := os.Getenv("SHELL")
+	if shell == "" {
+		shell = "/bin/sh"
+	}
 
-	c := wish.Command(constants.WishSession, "bash", "-im")
-	c.SetDir(path.Join(constants.ProjectsDir, uuid))
+	command := fmt.Sprintf("clear && echo '\nShell in project: %s\nuse Ctrl+D or type 'exit' to exit\n' && exec %s", uuid, shell)
+	c := exec.Command("sh", "-c", command)
+	c.Dir = path.Join(constants.ProjectsDir, uuid)
 
-	cmd := tea.Exec(c, func(err error) tea.Msg {
+	return tea.ExecProcess(c, func(err error) tea.Msg {
 		if err != nil {
-			return ProgramErrMsg{Err: err}
+			return ExecFinishedMsg{}
 		}
 		return ExecFinishedMsg{}
 	})
-
-	return cmd
 }

@@ -84,7 +84,7 @@ func (m ProjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case editProxyProject:
 				return m, commands.ReadProjectDomain(m.project.UUID)
 			case executeCommandProject:
-				return m, commands.CommandInProject(m.project.UUID, "sudo ls")
+				return m, commands.CommandInProject(m.project.UUID)
 			case viewActionsProject:
 				m.Loading = true
 				return m, commands.ReadProjectActions(m.project.UUID)
