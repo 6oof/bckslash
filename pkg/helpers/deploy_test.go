@@ -22,7 +22,7 @@ func TestDeployCheck(t *testing.T) {
 	projectDir := path.Join(tempDir, testUUID)
 	os.MkdirAll(projectDir, 0755)
 
-	deployFile := path.Join(projectDir, "bcks-deploy.sh")
+	deployFile := path.Join(projectDir, "bckslash-actions.sh")
 	os.Create(deployFile)
 
 	// Run DeployCheck again with the file now in place

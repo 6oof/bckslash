@@ -132,6 +132,7 @@ func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m homeModel) View() string {
 	homeCard := "Welcome to Bckslash!\n\nget help at: github.com/6oof/bckslash"
 
+	// Convert to string and print
 	if m.quitting {
 		return ""
 	}
