@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -47,7 +48,7 @@ This command is not yet implemented.`,
 }
 
 func runTui() {
-	if f, err := tea.LogToFile("debug.log", "help"); err != nil {
+	if f, err := tea.LogToFile(path.Join(constants.DataDir(), "debug.log"), "help"); err != nil {
 		fmt.Println("Couldn't open a file for logging:", err)
 		os.Exit(1)
 	} else {
