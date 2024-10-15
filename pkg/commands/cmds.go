@@ -14,6 +14,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
+	"github.com/charmbracelet/wish"
 )
 
 func FetchProject(uuid string) tea.Cmd {
@@ -238,22 +239,15 @@ func CommandInProject(uuid string, command string) tea.Cmd {
 	// 	}
 	// }
 
-	// Create the command
-	cmd := exec.Command("/bin/sh", "-c", command) // Use /bin/sh to run the command as a shell command
-	cmd.Dir = path.Join(constants.ProjectsDir, uuid)
+	c := wish.Command(constants.WishSession, "bash", "-im")
+	c.SetDir(path.Join(constants.ProjectsDir, uuid))
 
-	// Create buffers to capture output
-	var stdoutBuf, stderrBuf bytes.Buffer
-	cmd.Stdout = &stdoutBuf
-	cmd.Stderr = &stderrBuf
-
-	// Execute the command
-	return tea.ExecProcess(cmd, func(err error) tea.Msg {
+	cmd := tea.Exec(c, func(err error) tea.Msg {
 		if err != nil {
-			return ProgramErrMsg{Err: fmt.Errorf("error executing command: %v\nStderr: %s", err, stderrBuf.String())}
+			return ProgramErrMsg{Err: err}
 		}
-
-		// Return the captured stdout content
-		return ExecFinishedMsg{Content: stdoutBuf.String()}
+		return ExecFinishedMsg{}
 	})
+
+	return cmd
 }
