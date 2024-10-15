@@ -79,7 +79,7 @@ func OpenHelpMd() tea.Cmd {
 
 func ReadProjectActions(uuid string) tea.Cmd {
 	return func() tea.Msg {
-		content, err := os.ReadFile(path.Join(constants.ProjectsDir, uuid, "bckslash-actions.sh"))
+		content, err := os.ReadFile(path.Join(constants.DataDir(), constants.ProjectsDir, uuid, "bckslash-actions.sh"))
 		if err != nil {
 
 			if errors.Is(err, os.ErrNotExist) {
@@ -101,7 +101,7 @@ func ReadProjectActions(uuid string) tea.Cmd {
 
 func ReadProjectDomain(uuid string) tea.Cmd {
 	return func() tea.Msg {
-		content, err := os.ReadFile(path.Join(constants.ProjectsDir, uuid, "bckslash.caddy"))
+		content, err := os.ReadFile(path.Join(constants.DataDir(), constants.ProjectsDir, uuid, "bckslash.caddy"))
 		if err != nil {
 
 			if errors.Is(err, os.ErrNotExist) {
@@ -182,7 +182,7 @@ func LoadProjectsCmd() tea.Cmd {
 }
 
 func TriggerAction(uuid, action string) tea.Cmd {
-	deployType, err := helpers.DeployCheck(uuid, "projects")
+	deployType, err := helpers.DeployCheck(uuid, path.Join(constants.DataDir(), "projects"))
 	if err != nil {
 		return func() tea.Msg {
 			return ProgramErrMsg{Err: err}
@@ -195,7 +195,7 @@ func TriggerAction(uuid, action string) tea.Cmd {
 		}
 	}
 
-	scriptPath := path.Join(constants.ProjectsDir, uuid, "bckslash-actions.sh")
+	scriptPath := path.Join(constants.DataDir(), constants.ProjectsDir, uuid, "bckslash-actions.sh")
 
 	scriptContent, err := os.ReadFile(scriptPath)
 	if err != nil {
@@ -211,7 +211,7 @@ func TriggerAction(uuid, action string) tea.Cmd {
 	}
 
 	// If we reach here, we are ready to execute the action.
-	pdir := path.Join(constants.ProjectsDir, uuid)
+	pdir := path.Join(constants.DataDir(), constants.ProjectsDir, uuid)
 	cmd := exec.Command("/bin/sh", "-c", "bckslash-actions.sh", action)
 	cmd.Dir = pdir
 
@@ -238,7 +238,7 @@ func CommandInProject(uuid string) tea.Cmd {
 
 	command := fmt.Sprintf("clear && echo '\nShell in project: %s\nuse Ctrl+D or type 'exit' to exit\n' && exec %s", uuid, shell)
 	c := exec.Command("sh", "-c", command)
-	c.Dir = path.Join(constants.ProjectsDir, uuid)
+	c.Dir = path.Join(constants.DataDir(), constants.ProjectsDir, uuid)
 
 	return tea.ExecProcess(c, func(err error) tea.Msg {
 		if err != nil {

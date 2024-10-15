@@ -94,7 +94,7 @@ func (m homeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return MakeServerStatsModel().Update(commands.ExecStartMsg{})
 
 			case navigateProxySettings:
-				return m, commands.OpenEditor(path.Join("public", "traefik.yml"))
+				return m, commands.OpenEditor(path.Join(constants.DataDir(), "public", "traefik.yml"))
 
 			case navigateServerInfo:
 				return MakeServerInfoModel().Update(commands.ExecStartMsg{})

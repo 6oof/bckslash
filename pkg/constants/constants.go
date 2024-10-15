@@ -1,6 +1,9 @@
 package constants
 
 import (
+	"os"
+	"path"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -67,4 +70,9 @@ func BodyWidth() int {
 		return MaxWidth
 	}
 	return WinSize.Width
+}
+
+func DataDir() string {
+	hd, _ := os.UserHomeDir()
+	return path.Join(hd, "bckslash")
 }

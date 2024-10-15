@@ -94,7 +94,7 @@ func AddProjectFromCommand(title, projectType, repo, branch string) error {
 
 	if !constants.Testing {
 		// Define the path for the new project folder
-		projectDir := filepath.Join(constants.ProjectsDir, pro.UUID)
+		projectDir := filepath.Join(constants.DataDir(), constants.ProjectsDir, pro.UUID)
 
 		// Run the Git command to clone the repository
 		c := exec.Command("git", "clone", "--depth", "1", "-b", pro.Branch, pro.Repository, projectDir)
@@ -133,11 +133,11 @@ func AddProjectFromCommand(title, projectType, repo, branch string) error {
 }
 
 func resolveEnvOnCreate(uuid string) error {
-	envPath := path.Join(constants.ProjectsDir, uuid, ".env")
+	envPath := path.Join(constants.DataDir(), constants.ProjectsDir, uuid, ".env")
 	file, err := os.Open(envPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			fileExample, err := os.Open(path.Join(constants.ProjectsDir, uuid, ".env.example"))
+			fileExample, err := os.Open(path.Join(constants.DataDir(), constants.ProjectsDir, uuid, ".env.example"))
 			if err != nil {
 				return fmt.Errorf("unable to open .env.example: %w", err)
 			}
@@ -176,7 +176,7 @@ func RemoveProject(uuid string) error {
 	}
 
 	// Define the path for the project folder
-	projectDir := filepath.Join(constants.ProjectsDir, uuid)
+	projectDir := filepath.Join(constants.DataDir(), constants.ProjectsDir, uuid)
 
 	// Remove the project folder
 	if err := os.RemoveAll(projectDir); err != nil {
@@ -198,7 +198,7 @@ func RemoveProject(uuid string) error {
 
 func FetchProjectGitStatus(uuid string) (string, error) {
 
-	projectDir := filepath.Join(constants.ProjectsDir, uuid)
+	projectDir := filepath.Join(constants.DataDir(), constants.ProjectsDir, uuid)
 
 	psCmd := exec.Command("git", "--no-pager", "log", "-1", "--format=%h %cd", "--date=iso")
 	psCmd.Dir = projectDir
