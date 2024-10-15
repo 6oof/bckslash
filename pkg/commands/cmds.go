@@ -61,7 +61,7 @@ func FetchProjectGitStatus(uuid string) tea.Cmd {
 		status, err := helpers.FetchProjectGitStatus(uuid)
 
 		if err != nil {
-			return ProjectViewData{GitLog: err.Error()}
+			return ProjectViewData{GitLog: ""}
 		}
 		return ProjectViewData{GitLog: status}
 	}
